@@ -1,4 +1,6 @@
 import { getGoalsWithStatus } from "@/lib/dashboard/goals"
+import { orderGoalTree } from "@/lib/dashboard/goal-tree"
+import { GoalList } from "@/components/goals/goal-list"
 import { SectionPlaceholder } from "@/components/section-placeholder"
 import {
   Card,
@@ -7,12 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-
-const STATUS_LABEL: Record<string, string> = {
-  "not-started": "Not started",
-  "in-progress": "In progress",
-  done: "Done",
-}
 
 export default async function GoalsPage() {
   const goals = await getGoalsWithStatus()
@@ -27,35 +23,20 @@ export default async function GoalsPage() {
     )
   }
 
+  const ordered = orderGoalTree(goals)
+  const view = ordered.map((g) => goals.find((x) => x.id === g.id)!)
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Goals</CardTitle>
         <CardDescription>
-          Set with the /goals skill — shown here read-only.
+          Decomposed with the /goals skill — definitions read-only; click a
+          status to advance it.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ul className="divide-border divide-y">
-          {goals.map((goal) => (
-            <li
-              key={goal.id}
-              className="flex items-center justify-between gap-4 py-2 first:pt-0 last:pb-0"
-            >
-              <div className="flex flex-col">
-                <span className="text-sm">{goal.title}</span>
-                <span className="text-muted-foreground text-xs uppercase">
-                  {goal.horizon}
-                  {goal.orphan ? " · unlinked" : ""}
-                </span>
-              </div>
-              <span className="text-muted-foreground text-xs">
-                {STATUS_LABEL[goal.state] ?? goal.state}
-                {goal.progress != null ? ` · ${goal.progress}%` : ""}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <GoalList goals={view} />
       </CardContent>
     </Card>
   )

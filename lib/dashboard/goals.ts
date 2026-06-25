@@ -33,6 +33,32 @@ export async function getGoalStatus(): Promise<Record<string, GoalStatus>> {
   return data?.status ?? {}
 }
 
+const VALID_STATUS: GoalStatus["status"][] = ["not-started", "in-progress", "done"]
+
+/**
+ * Set a goal's volatile status (and optional progress). Writes only
+ * `goal-status.yaml` — `goals.yaml` stays owned by the `/goals` skill, so no
+ * file has two writers. Progress is preserved across a status-only change.
+ */
+export async function setGoalStatus(
+  id: string,
+  status: GoalStatus["status"],
+  progress?: number,
+): Promise<void> {
+  if (!VALID_STATUS.includes(status)) throw new Error(`Invalid goal status: ${status}`)
+  const current = await getGoalStatus()
+  const entry: GoalStatus = { status }
+  const carried = progress ?? current[id]?.progress
+  if (carried != null) entry.progress = Math.max(0, Math.min(100, Math.round(carried)))
+
+  const vault = openVault()
+  await vault.writeYaml(
+    STATUS_REL,
+    { status: { ...current, [id]: entry } },
+    { message: "dashboard: set goal status" },
+  )
+}
+
 export interface GoalWithStatus extends Goal {
   state: GoalStatus["status"]
   progress?: number
