@@ -14,6 +14,9 @@ npm run dev     # localhost:3000
 
 `npm run build` for a production build; `npm test` / `npm run typecheck` for checks.
 
+Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
+(tests use it to write to a throwaway git repo).
+
 ## Architecture
 
 - **Source of truth = files on disk** in `vault/` (gitignored). The committed
