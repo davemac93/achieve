@@ -58,7 +58,7 @@ describe('setup script', () => {
 
   it('scaffolds the bundled skills into the vault', async () => {
     expect(runSetup(vaultDir).code).toBe(0)
-    for (const name of ['profile', 'goals']) {
+    for (const name of ['profile', 'goals', 'review']) {
       const skill = path.join(vaultDir, '.claude', 'skills', name, 'SKILL.md')
       expect(await fs.stat(skill).then((s) => s.isFile())).toBe(true)
     }
