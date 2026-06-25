@@ -20,8 +20,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse, stringify } from 'yaml'
 
-/** Default vault location: `<repo root>/vault`. */
+/**
+ * Default vault location: `<repo root>/vault`, or the path in
+ * `ACHIEVE_VAULT_DIR` when set. The env override lets tests point the data
+ * layer at a throwaway vault, and lets a user run the dashboard against a vault
+ * stored elsewhere.
+ */
 export function defaultVaultRoot(): string {
+  const override = process.env.ACHIEVE_VAULT_DIR
+  if (override) return path.resolve(override)
   const here = path.dirname(fileURLToPath(import.meta.url))
   return path.resolve(here, '..', '..', 'vault')
 }
