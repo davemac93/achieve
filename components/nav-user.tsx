@@ -90,7 +90,7 @@ export function NavUser({
               </DropdownMenuItem>
               <DropdownMenuItem disabled>
                 <BadgeCheck />
-                Profile is edited via the /profile skill
+                Or refresh it with the /profile skill
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

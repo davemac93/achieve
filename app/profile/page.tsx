@@ -1,11 +1,30 @@
-import { SectionPlaceholder } from "@/components/section-placeholder"
+import { ProfileEditor } from "@/components/profile/profile-editor"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { getProfile } from "@/lib/dashboard/profile"
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const content = await getProfile()
+
   return (
-    <SectionPlaceholder
-      title="Profile"
-      description="Who you are — the context every Claude Code session auto-loads."
-      note="Your profile lives in the vault’s user.md and is auto-loaded via CLAUDE.md. The in-dashboard editor lands in a later v1 issue; for now edit user.md directly or use the /profile skill."
-    />
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile</CardTitle>
+        <CardDescription>
+          Your <code>user.md</code> — auto-loaded into every Claude Code session
+          via the vault’s <code>CLAUDE.md</code>. Edit it here, or run the{" "}
+          <code>/profile</code> skill to refresh it from your goals, projects,
+          and non-private notes (approve-gated; never your diary).
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ProfileEditor content={content} />
+      </CardContent>
+    </Card>
   )
 }
