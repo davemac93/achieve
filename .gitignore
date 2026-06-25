@@ -15,6 +15,8 @@ node_modules/
 # Build / tooling output
 dist/
 .next/
+next-env.d.ts
+*.tsbuildinfo
 coverage/
 *.log
 
