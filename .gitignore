@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Credentials — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Personal vault content — the user's real data lives here and is never published.
+# The committed template/ directory holds the blank structure instead.
+/vault/
+
+# Build / tooling output
+dist/
+.next/
+coverage/
+*.log
+
+# OS noise
+.DS_Store

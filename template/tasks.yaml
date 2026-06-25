@@ -1,0 +1,3 @@
+# Tasks — primary writer: dashboard. Agents read only.
+# Each entry: { id, title, done, created, goal? (weekly-goal id) }
+tasks: []

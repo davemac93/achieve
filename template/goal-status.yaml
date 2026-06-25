@@ -1,0 +1,4 @@
+# Volatile goal status/progress — primary writer: dashboard. Agents read only.
+# Split from goals.yaml so no file has two writers.
+# Map of goal id -> { status: not-started|in-progress|done, progress?: 0-100 }
+status: {}

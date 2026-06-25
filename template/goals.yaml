@@ -1,0 +1,6 @@
+# Goal definitions — primary writer: /goals skill. Dashboard reads only.
+# Hierarchy: 3yr -> yearly -> monthly -> weekly via optional `parent` refs.
+# Strict tree softly enforced: orphans are allowed (flag them), the agent
+# steers toward full linkage.
+# Each entry: { id, horizon: 3yr|yearly|monthly|weekly, title, parent?, orphan? }
+goals: []

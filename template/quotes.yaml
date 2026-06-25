@@ -1,0 +1,5 @@
+# Quotes — writers: daily rotation script (current pointer) + dashboard (human add).
+# Agents read only.
+# `current` is the index into `quotes` shown today; the rotation script advances it.
+quotes: []
+current: null
