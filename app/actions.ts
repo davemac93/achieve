@@ -12,8 +12,10 @@ import { revalidatePath } from "next/cache"
 
 import { addTask, deleteTask, toggleTask } from "@/lib/dashboard/tasks"
 import { addQuote } from "@/lib/dashboard/quotes"
+import { setGoalStatus } from "@/lib/dashboard/goals"
 import { saveDiaryEntry } from "@/lib/dashboard/diary"
 import { saveProfile } from "@/lib/dashboard/profile"
+import type { GoalStatus } from "@/lib/dashboard/types"
 
 export async function addTaskAction(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "")
@@ -31,6 +33,15 @@ export async function toggleTaskAction(id: string): Promise<void> {
 export async function deleteTaskAction(id: string): Promise<void> {
   await deleteTask(id)
   revalidatePath("/")
+}
+
+export async function setGoalStatusAction(
+  id: string,
+  status: GoalStatus["status"],
+): Promise<void> {
+  await setGoalStatus(id, status)
+  revalidatePath("/")
+  revalidatePath("/goals")
 }
 
 export async function addQuoteAction(formData: FormData): Promise<void> {

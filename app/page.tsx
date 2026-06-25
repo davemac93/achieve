@@ -5,8 +5,10 @@ import { getCurrentQuote } from "@/lib/dashboard/quotes"
 import { getGoalsWithStatus } from "@/lib/dashboard/goals"
 import { getProjects } from "@/lib/dashboard/projects"
 import { getNotes } from "@/lib/dashboard/notes"
+import { orderGoalTree } from "@/lib/dashboard/goal-tree"
 import { AddQuote } from "@/components/dashboard/add-quote"
 import { TodoList } from "@/components/dashboard/todo-list"
+import { GoalList } from "@/components/goals/goal-list"
 import {
   Card,
   CardContent,
@@ -14,12 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-
-const STATUS_LABEL: Record<string, string> = {
-  "not-started": "Not started",
-  "in-progress": "In progress",
-  done: "Done",
-}
 
 export default async function DashboardPage() {
   const [tasks, quote, goals, projects, notes] = await Promise.all([
@@ -31,6 +27,12 @@ export default async function DashboardPage() {
   ])
 
   const openCount = tasks.filter((t) => !t.done).length
+  const orderedGoals = orderGoalTree(goals).map(
+    (g) => goals.find((x) => x.id === g.id)!,
+  )
+  const weeklyGoals = goals
+    .filter((g) => g.horizon === "weekly")
+    .map((g) => ({ id: g.id, title: g.title }))
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -44,7 +46,7 @@ export default async function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <TodoList tasks={tasks} />
+          <TodoList tasks={tasks} weeklyGoals={weeklyGoals} />
         </CardContent>
       </Card>
 
@@ -78,8 +80,8 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Goals</CardTitle>
           <CardDescription>
-            Set and decomposed with the <code>/goals</code> skill — shown here
-            read-only.
+            Decomposed with the <code>/goals</code> skill — definitions
+            read-only; click a status to advance it.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -89,26 +91,7 @@ export default async function DashboardPage() {
               decompose a vision into 3-year → yearly → monthly → weekly goals.
             </p>
           ) : (
-            <ul className="divide-border divide-y">
-              {goals.map((goal) => (
-                <li
-                  key={goal.id}
-                  className="flex items-center justify-between gap-4 py-2 first:pt-0 last:pb-0"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-sm">{goal.title}</span>
-                    <span className="text-muted-foreground text-xs uppercase">
-                      {goal.horizon}
-                      {goal.orphan ? " · unlinked" : ""}
-                    </span>
-                  </div>
-                  <span className="text-muted-foreground text-xs">
-                    {STATUS_LABEL[goal.state] ?? goal.state}
-                    {goal.progress != null ? ` · ${goal.progress}%` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <GoalList goals={orderedGoals} />
           )}
         </CardContent>
       </Card>
