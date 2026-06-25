@@ -35,8 +35,9 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
 ## Write ownership (one primary writer per file)
 
 Dashboard owns `tasks.yaml`, `goal-status.yaml`, quote adds, diary, `user.md`.
-The `/goals` skill owns `goals.yaml`; `/review` owns `reviews/`. Agents are
-read-only elsewhere.
+The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
+pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml`; `/review` owns
+`reviews/`. Agents are read-only elsewhere.
 
 ## Privacy boundary (non-negotiable)
 
