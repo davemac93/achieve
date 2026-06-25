@@ -56,6 +56,12 @@ describe('setup script', () => {
     }
   })
 
+  it('scaffolds the bundled skills into the vault', async () => {
+    expect(runSetup(vaultDir).code).toBe(0)
+    const skill = path.join(vaultDir, '.claude', 'skills', 'profile', 'SKILL.md')
+    expect(await fs.stat(skill).then((s) => s.isFile())).toBe(true)
+  })
+
   it('initializes the vault as a git repo with one setup commit', async () => {
     runSetup(vaultDir)
     const count = execFileSync('git', ['rev-list', '--count', 'HEAD'], {

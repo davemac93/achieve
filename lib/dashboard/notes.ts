@@ -42,3 +42,12 @@ export async function getNotes(): Promise<Note[]> {
 
   return notes.sort((a, b) => (b.created ?? "").localeCompare(a.created ?? ""))
 }
+
+/**
+ * Notes an agent may read: everything except `type: private`, which is
+ * categorically human-only. This is the privacy filter the `/profile` skill
+ * (and any future read-scoped agent) builds on — private notes never leave it.
+ */
+export async function getPublicNotes(): Promise<Note[]> {
+  return (await getNotes()).filter((note) => note.type !== "private")
+}

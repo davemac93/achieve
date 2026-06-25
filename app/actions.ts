@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache"
 import { addTask, deleteTask, toggleTask } from "@/lib/dashboard/tasks"
 import { addQuote } from "@/lib/dashboard/quotes"
 import { saveDiaryEntry } from "@/lib/dashboard/diary"
+import { saveProfile } from "@/lib/dashboard/profile"
 
 export async function addTaskAction(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "")
@@ -45,4 +46,11 @@ export async function saveDiaryEntryAction(formData: FormData): Promise<void> {
   const content = String(formData.get("content") ?? "")
   await saveDiaryEntry(date, content)
   revalidatePath("/diary")
+}
+
+export async function saveProfileAction(formData: FormData): Promise<void> {
+  const content = String(formData.get("content") ?? "")
+  if (!content.trim()) return
+  await saveProfile(content)
+  revalidatePath("/profile")
 }
