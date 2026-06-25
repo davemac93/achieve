@@ -1,10 +1,11 @@
-import { Quote as QuoteIcon } from "lucide-react"
+import { CalendarCheck, Quote as QuoteIcon } from "lucide-react"
 
 import { getTasks } from "@/lib/dashboard/tasks"
 import { getCurrentQuote } from "@/lib/dashboard/quotes"
 import { getGoalsWithStatus } from "@/lib/dashboard/goals"
 import { getProjects } from "@/lib/dashboard/projects"
 import { getNotes } from "@/lib/dashboard/notes"
+import { getReviewStatus } from "@/lib/dashboard/reviews"
 import { orderGoalTree } from "@/lib/dashboard/goal-tree"
 import { AddQuote } from "@/components/dashboard/add-quote"
 import { TodoList } from "@/components/dashboard/todo-list"
@@ -18,12 +19,13 @@ import {
 } from "@/components/ui/card"
 
 export default async function DashboardPage() {
-  const [tasks, quote, goals, projects, notes] = await Promise.all([
+  const [tasks, quote, goals, projects, notes, review] = await Promise.all([
     getTasks(),
     getCurrentQuote(),
     getGoalsWithStatus(),
     getProjects(),
     getNotes(),
+    getReviewStatus(),
   ])
 
   const openCount = tasks.filter((t) => !t.done).length
@@ -36,6 +38,22 @@ export default async function DashboardPage() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
+      {review.due ? (
+        <div className="border-primary/30 bg-primary/5 lg:col-span-3 flex items-center gap-3 rounded-lg border px-4 py-3">
+          <CalendarCheck className="text-primary size-5 shrink-0" />
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">A weekly review is due</span>
+            <span className="text-muted-foreground text-xs">
+              {review.lastReviewDate
+                ? `Last review: ${review.lastReviewDate}.`
+                : "You haven't logged a review yet."}{" "}
+              Run the <code>/review</code> skill in Claude Code to walk your
+              progress and log one.
+            </span>
+          </div>
+        </div>
+      ) : null}
+
       <Card className="lg:col-span-2">
         <CardHeader>
           <CardTitle>To-do</CardTitle>
