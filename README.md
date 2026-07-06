@@ -83,6 +83,25 @@ vault/
 
 Each file has exactly one primary writer, so no two writers ever contend on the same file.
 
+### Note types
+
+Every note in `notes/` declares a `type` in its frontmatter, drawn from a small,
+**validated enum** — the `/note` write path rejects anything outside it, so the
+vocabulary stays consistent instead of drifting. Membership reflects observed
+usage rather than being invented up front:
+
+| `type` | For |
+| --- | --- |
+| `working` | active work — ideas, meeting notes, todos-in-prose |
+| `learning` | things being learned or studied (the Teach skill reads these) |
+| `validation` | evidence and findings while checking something out |
+| `private` | **human-only** — agents never read the body |
+
+`private` is load-bearing: it is the note-level half of the privacy boundary
+below, and every AI-facing surface filters it out. The set can grow as real
+usage warrants, but each addition is a deliberate, documented change here and in
+`NOTE_TYPES` (`lib/dashboard/note-content.ts`).
+
 ## Privacy boundary (non-negotiable)
 
 - **`diary/` is categorically off-limits to every AI agent and skill.** It is never read,
