@@ -44,6 +44,7 @@ AI-writable, unlike `diary/` and `type: private` notes. Skills ship in
 `template/.claude/skills/` and are scaffolded into each vault by
 `npm run setup`. Agents are read-only elsewhere.
 
+
 ## Privacy boundary (non-negotiable)
 
 `diary/` is categorically off-limits to every AI agent and skill, and `type:

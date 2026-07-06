@@ -8,6 +8,7 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "rotate": "node scripts/rotate-quote.ts",
+    "note": "node scripts/write-note.ts",
     "review-due": "node scripts/review-due.ts",
     "dev": "next dev",
     "build": "next build",
