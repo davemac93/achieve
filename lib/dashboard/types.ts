@@ -42,6 +42,11 @@ export interface Project {
   status?: "private" | "working"
 }
 
+/** A single project with its markdown body — the shape the project reader renders. */
+export interface ProjectWithBody extends Project {
+  body: string
+}
+
 /** A note, from a markdown file in `notes/`. The `/note` skill writes these. */
 export interface Note {
   slug: string
