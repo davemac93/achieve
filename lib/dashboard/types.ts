@@ -51,3 +51,8 @@ export interface Note {
   created?: string
   project?: string
 }
+
+/** A single note with its markdown body — the shape the note reader renders. */
+export interface NoteWithBody extends Note {
+  body: string
+}
