@@ -6,7 +6,14 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { openVault } from '../lib/vault/index.ts'
-import { buildNoteFile, slugify, writeNote, NOTE_TYPES } from '../lib/dashboard/note-content.ts'
+import {
+  buildNoteFile,
+  isNoteType,
+  slugify,
+  writeNote,
+  NOTE_TYPES,
+} from '../lib/dashboard/note-content.ts'
+import { getNotes, getPublicNotes } from '../lib/dashboard/notes.ts'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 
@@ -81,6 +88,29 @@ describe('buildNoteFile composes schema-valid note markdown', () => {
   })
 })
 
+describe('note-type enum validation', () => {
+  const created = '2026-07-06T10:00:00.000Z'
+
+  it('isNoteType accepts members and rejects non-members', () => {
+    for (const t of NOTE_TYPES) expect(isNoteType(t)).toBe(true)
+    expect(isNoteType('musings')).toBe(false)
+    expect(isNoteType('')).toBe(false)
+    expect(isNoteType(undefined)).toBe(false)
+  })
+
+  it('buildNoteFile rejects a type outside the enum, listing the valid ones', () => {
+    expect(() =>
+      buildNoteFile({ title: 'X', type: 'musings', body: 'y' }, created),
+    ).toThrow(/Invalid note type "musings".*learning, validation, working, private/)
+  })
+
+  it('buildNoteFile accepts every enum member, including private', () => {
+    for (const type of NOTE_TYPES) {
+      expect(() => buildNoteFile({ title: 'X', type, body: 'y' }, created)).not.toThrow()
+    }
+  })
+})
+
 describe('writeNote: the /note file-effect contract', () => {
   let dir: string
 
@@ -127,6 +157,20 @@ describe('writeNote: the /note file-effect contract', () => {
     expect(second.slug).toBe('dup-2')
     expect(await fs.readFile(path.join(dir, 'notes', 'dup.md'), 'utf8')).toContain('one')
     expect(await fs.readFile(path.join(dir, 'notes', 'dup-2.md'), 'utf8')).toContain('two')
+  })
+
+  it('private notes are agent-excluded: in getNotes but not getPublicNotes', async () => {
+    const vault = openVault()
+    await writeNote(vault, { title: 'Roadmap', type: 'working', body: 'ship it' }, '2026-07-06T10:00:00.000Z')
+    await writeNote(vault, { title: 'Therapy', type: 'private', body: 'human only' }, '2026-07-06T11:00:00.000Z')
+
+    const all = (await getNotes()).map((n) => n.slug)
+    const publicOnly = (await getPublicNotes()).map((n) => n.slug)
+    expect(all).toContain('therapy')
+    expect(all).toContain('roadmap')
+    // The private note is filtered from every agent-facing surface.
+    expect(publicOnly).toContain('roadmap')
+    expect(publicOnly).not.toContain('therapy')
   })
 
   it('the write path never reaches into the diary (privacy wall)', async () => {
