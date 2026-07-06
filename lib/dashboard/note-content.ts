@@ -14,19 +14,33 @@ import { stringify } from "yaml"
 import type { Vault } from "@/lib/vault"
 
 /**
- * The current note-type set. Fluid in v2 — the `/note` skill assigns from this
- * list, but a note is not hard-rejected for using another value yet. Issue #41
- * promotes this into a documented, validated enum once real usage data exists.
- * `private` is load-bearing: it marks human-only notes the privacy filter
- * excludes from every agent surface (see `getPublicNotes`).
+ * The note-type enum — the closed set of categories a note may declare.
+ *
+ * Membership was decided from observed usage, not up front (see README §
+ * "Note types"): these are the four types the vault's own skills produce and
+ * read. It is deliberately small and can grow, but a note's `type` is now
+ * *validated* against it — the write path rejects anything else rather than
+ * letting the vocabulary drift silently.
+ *
+ * `private` is load-bearing: it marks human-only notes that the privacy filter
+ * excludes from every agent surface (see `getPublicNotes`). It must stay a
+ * member with those semantics intact.
  */
 export const NOTE_TYPES = ["learning", "validation", "working", "private"] as const
+
+/** A validated note category — one of {@link NOTE_TYPES}. */
+export type NoteType = (typeof NOTE_TYPES)[number]
+
+/** True when `value` is a member of the note-type enum. */
+export function isNoteType(value: unknown): value is NoteType {
+  return typeof value === "string" && (NOTE_TYPES as readonly string[]).includes(value)
+}
 
 /** The fields the `/note` skill hands to the write path. */
 export interface NoteInput {
   /** Human title; also the basis for the file slug. */
   title: string
-  /** Assigned category — one of NOTE_TYPES in normal use. */
+  /** Assigned category — must be a member of NOTE_TYPES (validated on write). */
   type: string
   /** Optional freeform tags. */
   tags?: string[]
@@ -55,6 +69,11 @@ export function buildNoteFile(input: NoteInput, created: string): string {
   const type = input.type.trim()
   if (!title) throw new Error("A note needs a title.")
   if (!type) throw new Error("A note needs a type.")
+  if (!isNoteType(type)) {
+    throw new Error(
+      `Invalid note type ${JSON.stringify(type)}. Must be one of: ${NOTE_TYPES.join(", ")}.`,
+    )
+  }
 
   const frontmatter: Record<string, unknown> = { title, type }
   const tags = (input.tags ?? []).map((t) => t.trim()).filter(Boolean)

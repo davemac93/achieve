@@ -47,15 +47,16 @@ created: <ISO-8601 timestamp>    # stamped by the write path, not by you
 <summarized body>
 ```
 
-**Type** — assign the best fit from the current set:
+**Type** — assign exactly one from the enum (the write path **rejects** anything
+else, so don't invent a type):
 
 - `working` — active work, ideas, meeting notes, todos-in-prose.
 - `learning` — things being learned or studied (the Teach skill reads these).
 - `validation` — evidence / findings while checking something out.
 - `private` — human-only; agents (including you, later) never read the body.
 
-The set is fluid in v2; if none fit, pick the closest and say so. (Issue #41
-hardens this into a validated enum.)
+Pick the closest fit. If none fit well, use `working` and mention the mismatch —
+never pass a value outside the enum.
 
 ## Procedure
 
