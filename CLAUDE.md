@@ -38,12 +38,14 @@ Dashboard owns `tasks.yaml`, `goal-status.yaml`, quote adds, diary, `user.md`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
 pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml`; `/review` owns
 `reviews/`; the `/profile` skill refreshes `user.md` (approve-gated, alongside
-the dashboard editor). The `/validate-idea` and `/improve-process` skills each
-write dated, cited reports under `ideas/` (approve-gated) — `ideas/` is
-AI-writable, unlike `diary/` and `type: private` notes. Skills ship in
-`template/.claude/skills/` and are scaffolded into each vault by
-`npm run setup`. Agents are read-only elsewhere.
-
+the dashboard editor). The `/note` skill owns `notes/` — it writes each note
+through `scripts/write-note.ts` (the vault I/O path: atomic write + one labeled
+commit), never by hand; `/teach` creates new `learning` notes through that same
+`/note` write path (not a second writer). The `/validate-idea` and
+`/improve-process` skills each write dated, cited reports under `ideas/`
+(approve-gated) — `ideas/` is AI-writable, unlike `diary/` and `type: private`
+notes. Skills ship in `template/.claude/skills/` and are scaffolded into each
+vault by `npm run setup`. Agents are read-only elsewhere.
 
 ## Privacy boundary (non-negotiable)
 

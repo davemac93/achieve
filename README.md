@@ -51,6 +51,10 @@ and each change is one atomic write plus one labeled git commit.
   dated review under `reviews/weekly/`.
 - **`/profile`** — refreshes `user.md` from your goals, projects, and non-private notes
   (approve-gated).
+- **`/note`** — turns raw input into a summarized, categorized note under `notes/`, written through
+  the vault I/O path as one labeled commit.
+- **`/teach`** — runs an active-recall learning session grounded in your `learning` notes and
+  `user.md`, then captures what stuck as a new `learning` note (via the `/note` write path).
 
 Skills are approve-gated, never write outside the one file they own, and never read your diary or
 `type: private` notes. They ship in `template/.claude/skills/` and are copied into each vault by
