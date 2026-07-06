@@ -2,14 +2,34 @@ import "server-only"
 
 import { openVault } from "@/lib/vault"
 import { parseFrontmatter, titleFromSlug } from "@/lib/dashboard/markdown"
-import type { Note } from "@/lib/dashboard/types"
+import type { Note, NoteWithBody } from "@/lib/dashboard/types"
 
 const DIR = "notes"
+
+/** Slugs are plain kebab file stems — reject anything that could escape `notes/`. */
+const SLUG = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
 
 function asStringArray(value: unknown): string[] | undefined {
   if (Array.isArray(value)) return value.map(String)
   if (typeof value === "string" && value.trim()) return [value]
   return undefined
+}
+
+/** Map a note's slug + parsed frontmatter to the `Note` shape (no body). */
+function toNote(slug: string, frontmatter: Record<string, unknown>): Note {
+  return {
+    slug,
+    title:
+      typeof frontmatter.title === "string" && frontmatter.title.trim()
+        ? frontmatter.title
+        : titleFromSlug(slug),
+    type: typeof frontmatter.type === "string" ? frontmatter.type : undefined,
+    tags: asStringArray(frontmatter.tags),
+    created:
+      typeof frontmatter.created === "string" ? frontmatter.created : undefined,
+    project:
+      typeof frontmatter.project === "string" ? frontmatter.project : undefined,
+  }
 }
 
 /**
@@ -24,23 +44,27 @@ export async function getNotes(): Promise<Note[]> {
     files.map(async (file): Promise<Note> => {
       const slug = file.replace(/\.md$/, "")
       const { frontmatter } = parseFrontmatter(await vault.read(`${DIR}/${file}`))
-      return {
-        slug,
-        title:
-          typeof frontmatter.title === "string" && frontmatter.title.trim()
-            ? frontmatter.title
-            : titleFromSlug(slug),
-        type: typeof frontmatter.type === "string" ? frontmatter.type : undefined,
-        tags: asStringArray(frontmatter.tags),
-        created:
-          typeof frontmatter.created === "string" ? frontmatter.created : undefined,
-        project:
-          typeof frontmatter.project === "string" ? frontmatter.project : undefined,
-      }
+      return toNote(slug, frontmatter)
     })
   )
 
   return notes.sort((a, b) => (b.created ?? "").localeCompare(a.created ?? ""))
+}
+
+/**
+ * Read a single note (frontmatter + body) by slug, or `null` if it doesn't
+ * exist. Read-only and `server-only`. Used by the dashboard note reader; the
+ * human may read any of their own notes here, including `type: private` — the
+ * `private` exclusion is an *agent* boundary (`getPublicNotes`), not a
+ * human-facing one.
+ */
+export async function getNote(slug: string): Promise<NoteWithBody | null> {
+  if (!SLUG.test(slug)) return null
+  const vault = openVault()
+  const rel = `${DIR}/${slug}.md`
+  if (!(await vault.exists(rel))) return null
+  const { frontmatter, body } = parseFrontmatter(await vault.read(rel))
+  return { ...toNote(slug, frontmatter), body }
 }
 
 /**
