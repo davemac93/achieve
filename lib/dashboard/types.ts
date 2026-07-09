@@ -14,6 +14,25 @@ export interface Task {
   goal?: string
 }
 
+/** Asset categories a holding can have. Extend deliberately — the write path rejects anything else. */
+export const ASSET_TYPES = ["stock", "etf"] as const
+export type AssetType = (typeof ASSET_TYPES)[number]
+
+/** A holding in `investments.yaml`. Dashboard is the primary writer. */
+export interface Holding {
+  id: string
+  ticker: string
+  name: string
+  assetType: AssetType
+  /** Account label, e.g. "IKE" or "IKZE". */
+  account: string
+  shares: number
+  /** Average cost per share in PLN, as actually paid. */
+  avgCost: number
+  /** ISO-4217 currency the instrument is quoted in on its exchange, e.g. "EUR". */
+  quoteCurrency: string
+}
+
 /** A goal definition in `goals.yaml`. The `/goals` skill is the primary writer. */
 export interface Goal {
   id: string
