@@ -10,6 +10,7 @@ import {
   NotebookPen,
   Sparkles,
   Target,
+  TrendingUp,
 } from "lucide-react"
 
 import { NavUser } from "@/components/nav-user"
@@ -31,6 +32,7 @@ const navItems = [
   { title: "Diary", url: "/diary", icon: BookText },
   { title: "Goals", url: "/goals", icon: Target },
   { title: "Projects", url: "/projects", icon: FolderKanban },
+  { title: "Investments", url: "/investments", icon: TrendingUp },
 ]
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {

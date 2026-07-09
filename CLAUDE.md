@@ -29,12 +29,14 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
   ([app/actions.ts](app/actions.ts)) that calls the vault layer server-side.
   Read-side data access lives in [lib/dashboard/](lib/dashboard) and is marked
   `server-only`.
-- **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, with the user
-  avatar pinned at the bottom ([components/app-sidebar.tsx](components/app-sidebar.tsx)).
+- **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, Investments, with
+  the user avatar pinned at the bottom
+  ([components/app-sidebar.tsx](components/app-sidebar.tsx)).
 
 ## Write ownership (one primary writer per file)
 
-Dashboard owns `tasks.yaml`, `goal-status.yaml`, quote adds, diary, `user.md`.
+Dashboard owns `tasks.yaml`, `goal-status.yaml`, `investments.yaml` (holdings
+at cost basis, in PLN; agents read only), quote adds, diary, `user.md`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
 pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml`; `/review` owns
 `reviews/`; the `/profile` skill refreshes `user.md` (approve-gated, alongside

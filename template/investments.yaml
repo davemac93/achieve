@@ -1,0 +1,7 @@
+# Investments — primary writer: dashboard. Agents read only.
+# Flat list of holdings at cost basis. avgCost is per share in PLN, as actually
+# paid; quoteCurrency is the currency the instrument trades in on its exchange
+# (used by the prices layer for live valuation).
+# Each entry: { id, ticker, name, assetType: stock|etf, account, shares,
+#               avgCost, quoteCurrency }
+holdings: []
