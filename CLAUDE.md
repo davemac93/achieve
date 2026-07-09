@@ -47,6 +47,14 @@ commit), never by hand; `/teach` creates new `learning` notes through that same
 notes. Skills ship in `template/.claude/skills/` and are scaffolded into each
 vault by `npm run setup`. Agents are read-only elsewhere.
 
+`vault/.search-index/` is a derived cache, not owned vault content: `npm run
+index` ([scripts/build-search-index.ts](scripts/build-search-index.ts))
+rebuilds it from scratch each time from `notes/` and `projects/`, it is
+excluded from the vault's own git history (`template/.gitignore`), and the
+`/search-vault` skill only ever reads it via `npm run search`
+([scripts/search-vault.ts](scripts/search-vault.ts)). Optional — everything
+else works with it absent.
+
 ## Privacy boundary (non-negotiable)
 
 `diary/` is categorically off-limits to every AI agent and skill, and `type:
