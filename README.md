@@ -123,6 +123,40 @@ usage warrants, but each addition is a deliberate, documented change here and in
 
 These contracts are enforced in code (sanctioned-writer modules) and guarded by tests.
 
+## Obsidian (optional viewer)
+
+The dashboard is the primary, source-of-truth interface — Obsidian is purely an optional way to
+*browse* the same `vault/` folder with a nicer reading experience (backlinks, graph view, a
+properties panel for frontmatter). It never changes what's true on disk; both just read/write the
+same files.
+
+**Setup:** open Obsidian → "Open folder as vault" → select your `vault/` directory. `npm run setup`
+already ships sensible defaults under `vault/.obsidian/` (see below), so panes and plugins are
+pre-configured on first open — no manual setup required.
+
+**What's pre-configured:**
+- Core plugins: Backlinks, Outgoing links, Graph view, Tag pane, Templates, Note composer, Outline,
+  Quick switcher.
+- Frontmatter (`type`, `tags`, `project`, `created`, `status`) renders natively as a **Properties**
+  panel in modern Obsidian — no plugin required.
+- Links use plain relative markdown links (`useMarkdownLinks: true`), matching how the dashboard and
+  every skill already read note/project bodies as plain text — nothing Obsidian-specific leaks into
+  file content.
+
+**Recommended community plugin:** [Dataview](https://github.com/blacksmithgu/obsidian-dataview) —
+lets you query frontmatter directly (e.g. list every `type: learning` note, or every project whose
+`status` isn't `private`) without hand-maintaining an index. Not bundled (community plugins are
+binaries we don't vendor); install it from Obsidian's Community Plugins browser if you want it.
+
+**Note:** `project:`/`type:` frontmatter fields are plain strings, not `[[wikilinks]]` — Obsidian's
+backlinks graph won't auto-connect a note to its project unless you rewrite the value as a wikilink
+(e.g. `project: "[[streaming]]"`). Doing so is purely a human-side markup choice; every skill and the
+dashboard already read the field as a string either way.
+
+`vault/.obsidian/workspace.json` and any installed plugin binaries are gitignored (noisy,
+machine-specific state) — only the meaningful settings (`app.json`, `core-plugins.json`,
+`community-plugins.json`) are tracked in your vault's own git history.
+
 ## Architecture
 
 - **Source of truth = files on disk** in `vault/` (its own git repo, gitignored from this one).
