@@ -2,6 +2,10 @@
 # not vault content. Excluded from the vault's own audit-trail git history.
 /.search-index/
 
+# Market-price snapshot — derived external data written by the dashboard's
+# prices layer (lib/dashboard/prices.ts), not vault content.
+/.cache/
+
 # Obsidian's per-session workspace state (open panes, last cursor position,
 # installed community plugin binaries) — noisy and machine-specific, unlike
 # the meaningful settings in app.json/core-plugins.json which stay tracked.

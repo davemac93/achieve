@@ -8,8 +8,8 @@ import {
   deleteHoldingAction,
   updateHoldingAction,
 } from "@/app/actions"
-import type { Holding } from "@/lib/dashboard/types"
 import { ASSET_TYPES } from "@/lib/dashboard/types"
+import type { PricedHolding } from "@/lib/dashboard/valuation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -22,9 +22,25 @@ const shareCount = new Intl.NumberFormat("pl-PL", {
   maximumFractionDigits: 6,
 })
 
-export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
+/** Format a native-currency quote; falls back for non-ISO codes Intl rejects. */
+function fmtNative(value: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("pl-PL", { style: "currency", currency }).format(value)
+  } catch {
+    return `${value.toFixed(2)} ${currency}`
+  }
+}
+
+function plClass(plPln: number | null): string {
+  if (plPln === null) return ""
+  return plPln >= 0
+    ? "text-emerald-600 dark:text-emerald-500"
+    : "text-red-600 dark:text-red-500"
+}
+
+export function HoldingsTable({ holdings }: { holdings: PricedHolding[] }) {
   const [isPending, startTransition] = React.useTransition()
-  const [editing, setEditing] = React.useState<Holding | null>(null)
+  const [editing, setEditing] = React.useState<PricedHolding | null>(null)
 
   const selectClass =
     "border-input bg-transparent text-foreground h-9 rounded-md border px-3 py-1 text-sm shadow-xs"
@@ -144,6 +160,11 @@ export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
                 <th className="px-2 py-2 text-right font-medium">
                   Cost basis (PLN)
                 </th>
+                <th className="px-2 py-2 text-right font-medium">Price</th>
+                <th className="px-2 py-2 text-right font-medium">
+                  Value (PLN)
+                </th>
+                <th className="px-2 py-2 text-right font-medium">P/L</th>
                 <th className="px-2 py-2" aria-label="Actions" />
               </tr>
             </thead>
@@ -167,7 +188,20 @@ export function HoldingsTable({ holdings }: { holdings: Holding[] }) {
                     {pln.format(h.avgCost)}
                   </td>
                   <td className="px-2 py-2 text-right tabular-nums">
-                    {pln.format(h.shares * h.avgCost)}
+                    {pln.format(h.costPln)}
+                  </td>
+                  <td className="px-2 py-2 text-right tabular-nums">
+                    {h.price !== null ? fmtNative(h.price, h.quoteCurrency) : "—"}
+                  </td>
+                  <td className="px-2 py-2 text-right tabular-nums">
+                    {h.valuePln !== null ? pln.format(h.valuePln) : "—"}
+                  </td>
+                  <td
+                    className={`px-2 py-2 text-right tabular-nums ${plClass(h.plPln)}`}
+                  >
+                    {h.plPln !== null && h.plPct !== null
+                      ? `${h.plPln >= 0 ? "+" : ""}${pln.format(h.plPln)} (${h.plPct >= 0 ? "+" : ""}${h.plPct.toFixed(1)}%)`
+                      : "—"}
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100">

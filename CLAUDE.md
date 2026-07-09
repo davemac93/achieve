@@ -57,6 +57,15 @@ excluded from the vault's own git history (`template/.gitignore`), and the
 ([scripts/search-vault.ts](scripts/search-vault.ts)). Optional — everything
 else works with it absent.
 
+`vault/.cache/prices.json` is likewise derived, not vault content: the
+dashboard's prices layer ([lib/dashboard/prices.ts](lib/dashboard/prices.ts))
+fetches quotes and FX from Yahoo Finance per page view (in-memory TTL cache),
+overwrites the snapshot after each successful fetch with a plain atomic write —
+never a vault commit — and serves it as the fallback when live quotes are
+unavailable, degrading to cost basis when neither exists. Excluded from the
+vault's git history (`template/.gitignore` plus a self-written
+`.cache/.gitignore` for vaults scaffolded earlier).
+
 ## Privacy boundary (non-negotiable)
 
 `diary/` is categorically off-limits to every AI agent and skill, and `type:

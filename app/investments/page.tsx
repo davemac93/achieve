@@ -1,5 +1,8 @@
 import { getHoldings } from "@/lib/dashboard/investments"
+import { getPriceData } from "@/lib/dashboard/prices"
+import { priceHoldings, summarize } from "@/lib/dashboard/valuation"
 import { HoldingsTable } from "@/components/investments/holdings-table"
+import { SummaryCards } from "@/components/investments/summary-cards"
 import {
   Card,
   CardContent,
@@ -8,21 +11,36 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
+// Prices are fetched per request (with their own TTL cache) — never prerender.
+export const dynamic = "force-dynamic"
+
 export default async function InvestmentsPage() {
   const holdings = await getHoldings()
+  const prices = await getPriceData(holdings)
+  const priced = priceHoldings(holdings, prices)
+  const summary = summarize(priced)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Investments</CardTitle>
-        <CardDescription>
-          Your holdings at cost basis — what you paid, in PLN. Live valuation
-          arrives with the prices layer.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <HoldingsTable holdings={holdings} />
-      </CardContent>
-    </Card>
+    <>
+      {holdings.length > 0 ? (
+        <SummaryCards
+          summary={summary}
+          source={prices.source}
+          asOf={prices.asOf}
+        />
+      ) : null}
+      <Card>
+        <CardHeader>
+          <CardTitle>Holdings</CardTitle>
+          <CardDescription>
+            Cost basis in PLN as paid; live quotes converted to PLN. Tickers
+            are Yahoo Finance symbols (VWCE.DE, PKN.WA, AAPL).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <HoldingsTable holdings={priced} />
+        </CardContent>
+      </Card>
+    </>
   )
 }
