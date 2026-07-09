@@ -1,3 +1,11 @@
 # Local search index — a derived, regenerable cache (see `npm run index`),
 # not vault content. Excluded from the vault's own audit-trail git history.
 /.search-index/
+
+# Obsidian's per-session workspace state (open panes, last cursor position,
+# installed community plugin binaries) — noisy and machine-specific, unlike
+# the meaningful settings in app.json/core-plugins.json which stay tracked.
+/.obsidian/workspace.json
+/.obsidian/workspace-mobile.json
+/.obsidian/plugins/
+/.obsidian/cache
