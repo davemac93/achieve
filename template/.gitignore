@@ -1,0 +1,3 @@
+# Local search index — a derived, regenerable cache (see `npm run index`),
+# not vault content. Excluded from the vault's own audit-trail git history.
+/.search-index/

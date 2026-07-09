@@ -55,6 +55,8 @@ and each change is one atomic write plus one labeled git commit.
   the vault I/O path as one labeled commit.
 - **`/teach`** — runs an active-recall learning session grounded in your `learning` notes and
   `user.md`, then captures what stuck as a new `learning` note (via the `/note` write path).
+- **`/search-vault`** — semantic search over non-private notes and projects via a local,
+  file-based vector index (`npm run index` / `npm run search`). Optional and read-only.
 
 Skills are approve-gated, never write outside the one file they own, and never read your diary or
 `type: private` notes. They ship in `template/.claude/skills/` and are copied into each vault by
@@ -65,6 +67,11 @@ Skills are approve-gated, never write outside the one file they own, and never r
 - `npm run rotate` — advance the quote-of-the-day pointer (run on a daily schedule or by hand).
 - `npm run review-due` — print whether a weekly review is due; exits 0 (due) / 1 (not due), so a
   cron wrapper can branch on it. Read-only.
+- `npm run index` — (re)build the local semantic search index from `notes/` and `projects/`
+  (excludes `type: private` notes, `status: private` projects, and always excludes `diary/`).
+  Optional — everything else works with it absent. First run downloads a small local embedding
+  model; no API key or server required.
+- `npm run search -- "<query>"` — query the search index; prints JSON matches, most relevant first.
 
 ## The vault
 
@@ -83,6 +90,7 @@ vault/
   diary/             # dated entries — human-only, never read by AI
   reviews/weekly/    # dated weekly reviews (/review-owned)
   reviews/monthly/
+  .search-index/     # optional local vector index cache — derived, gitignored, rebuild anytime
 ```
 
 Each file has exactly one primary writer, so no two writers ever contend on the same file.
