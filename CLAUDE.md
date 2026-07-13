@@ -46,8 +46,12 @@ commit), never by hand; `/teach` creates new `learning` notes through that same
 `/note` write path (not a second writer). The `/validate-idea` and
 `/improve-process` skills each write dated, cited reports under `ideas/`
 (approve-gated) — `ideas/` is AI-writable, unlike `diary/` and `type: private`
-notes. Skills ship in `template/.claude/skills/` and are scaffolded into each
-vault by `npm run setup`. Agents are read-only elsewhere.
+notes. The `/invest-strategy` skill owns `investments/strategy.md` — an
+approve-gated **living** strategy document (revised in place, never duplicated)
+that reads goals, holdings, and cited web research (IKE/IKZE limits), and never
+gives buy/sell orders on specific securities. Skills ship in
+`template/.claude/skills/` and are scaffolded into each vault by `npm run
+setup`. Agents are read-only elsewhere.
 
 `vault/.search-index/` is a derived cache, not owned vault content: `npm run
 index` ([scripts/build-search-index.ts](scripts/build-search-index.ts))
