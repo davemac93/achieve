@@ -1,6 +1,8 @@
 ---
 name: goals
 description: Decompose a high-level vision into a 3yr → yearly → monthly → weekly goal tree and write it to goals.yaml. Use when the user wants to set, refine, or restructure their goals. Approve-gated; never reads the diary or private notes.
+model: opus
+effort: high
 ---
 
 # /goals — decompose a vision into a goal tree

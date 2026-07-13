@@ -1,6 +1,9 @@
 ---
 name: validate-idea
 description: Pressure-test a business idea with live web research — market, demand, competition, risks — then write a dated, cited verdict under ideas/. Use when the user wants to validate a business idea, asks "is this idea viable / should I pursue this". Approve-gated; never reads the diary or private notes.
+model: opus
+effort: high
+argument-hint: [idea to validate]
 ---
 
 # /validate-idea — pressure-test a business idea

@@ -1,6 +1,7 @@
 ---
 name: profile
 description: Refresh the vault's user.md from goals, projects, and non-private notes. Use when the user asks to update or regenerate their profile. Approve-gated; never reads the diary or private notes.
+effort: medium
 ---
 
 # /profile — refresh user.md

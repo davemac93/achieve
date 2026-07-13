@@ -70,8 +70,23 @@ unavailable, degrading to cost basis when neither exists. Excluded from the
 vault's git history (`template/.gitignore` plus a self-written
 `.cache/.gitignore` for vaults scaffolded earlier).
 
+## Skill model tiering
+
+Every template skill declares `model`/`effort` frontmatter by reasoning
+weight — heavy-reasoning skills (goals decomposition, research-backed verdicts,
+investment strategy) pin `model: opus` + `effort: high`; conversational skills
+inherit the session model at `effort: medium`; mechanical ones run cheap
+(`sonnet`/`low`). The authoritative table lives in
+[tests/skill-hardening.test.ts](tests/skill-hardening.test.ts), which fails on
+any untiered skill. Caveat: a skill's model override applies only for the rest
+of the invocation turn — later conversational turns resume the session model,
+so long interview sessions still benefit from a strong session model.
+
 ## Privacy boundary (non-negotiable)
 
 `diary/` is categorically off-limits to every AI agent and skill, and `type:
 private` notes are human-only. Diary content must never enter `vault/CLAUDE.md`
-or `user.md`.
+or `user.md`. This is enforced, not just prose: `template/.claude/settings.json`
+(scaffolded into every vault) carries a permissions deny rule for
+`Read(./diary/**)`. `type: private` notes cannot be path-denied — privacy lives
+in their frontmatter — so they remain guarded by skill instructions alone.
