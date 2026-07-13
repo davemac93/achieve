@@ -1,6 +1,9 @@
 ---
 name: teach
 description: Run an interactive learning session grounded in your `learning` notes and user.md — active recall and Socratic questioning, not a lecture — then capture what was learned as a new learning note. Use when the user wants to study, review, be quizzed on, or learn a topic they've taken notes on. Never reads the diary or private notes.
+effort: medium
+argument-hint: [topic to study]
+allowed-tools: Bash(node scripts/write-note.ts *)
 ---
 
 # /teach — learn from your own notes, then write back what stuck

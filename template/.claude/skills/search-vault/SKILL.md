@@ -1,6 +1,8 @@
 ---
 name: search-vault
 description: Semantic search over the vault's non-private notes and projects, via a local, file-based vector index (no server, no API key). Use when tag/keyword search or file navigation might miss something relevant — e.g. "what have I written about X", "find notes related to Y". Never reads the diary or private notes; returns nothing if the index hasn't been built yet.
+effort: low
+argument-hint: [what to search for]
 ---
 
 # /search-vault — semantic search over notes and projects

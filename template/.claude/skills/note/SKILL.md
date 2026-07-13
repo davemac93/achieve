@@ -1,6 +1,10 @@
 ---
 name: note
 description: Turn raw note content into a summarized, categorized note under notes/ with frontmatter (type, tags, project, created), written through the vault I/O path as one labeled commit. Use when the user wants to capture, save, or file a note. Never reads the diary or private notes.
+model: sonnet
+effort: low
+argument-hint: [raw note content]
+allowed-tools: Bash(node scripts/write-note.ts *)
 ---
 
 # /note — capture raw input as a filed note

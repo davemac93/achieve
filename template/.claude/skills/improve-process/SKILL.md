@@ -1,6 +1,9 @@
 ---
 name: improve-process
 description: Discovery-first assistant that understands a process and its environment from the vault, then holds a research-backed conversation on how to improve it, saving the result under ideas/. Use when the user wants to improve a workflow/process or asks "how can I do X better". Approve-gated; never reads the diary or private notes.
+model: opus
+effort: high
+argument-hint: [process to improve]
 ---
 
 # /improve-process — understand a process, then improve it together

@@ -1,6 +1,7 @@
 ---
 name: review
 description: Run a weekly review — walk progress against the goal tree and the period's tasks, then write a dated review under reviews/weekly/. Use when a review is due or the user asks to reflect on the week. Never reads the diary or private notes.
+effort: medium
 ---
 
 # /review — weekly review
