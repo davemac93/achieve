@@ -29,8 +29,10 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
   ([app/actions.ts](app/actions.ts)) that calls the vault layer server-side.
   Read-side data access lives in [lib/dashboard/](lib/dashboard) and is marked
   `server-only`.
-- **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, Investments, with
-  the user avatar pinned at the bottom
+- **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, Investments,
+  Guide (an onboarding checklist with checkmarks derived read-only from the
+  vault — [lib/dashboard/guide.ts](lib/dashboard/guide.ts)), with the user
+  avatar pinned at the bottom
   ([components/app-sidebar.tsx](components/app-sidebar.tsx)).
 
 ## Write ownership (one primary writer per file)
