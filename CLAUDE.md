@@ -49,7 +49,12 @@ commit), never by hand; `/teach` creates new `learning` notes through that same
 notes. The `/invest-strategy` skill owns `investments/strategy.md` — an
 approve-gated **living** strategy document (revised in place, never duplicated)
 that reads goals, holdings, and cited web research (IKE/IKZE limits), and never
-gives buy/sell orders on specific securities. Skills ship in
+gives buy/sell orders on specific securities. The `/research-company` skill
+owns dated, cited, scored reports under `investments/research/` — an
+orchestrator fans out parallel per-dimension research subagents (which never
+see vault content) and judges strategy fit itself; verdicts are fit-based
+(`fits-strategy | mixed | doesn't-fit | avoid`), never buy/sell calls, and the
+skill refuses to run without `investments/strategy.md`. Skills ship in
 `template/.claude/skills/` and are scaffolded into each vault by `npm run
 setup`. Agents are read-only elsewhere.
 
