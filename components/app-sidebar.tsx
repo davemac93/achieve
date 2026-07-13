@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   BookText,
+  Compass,
   FolderKanban,
   LayoutDashboard,
   NotebookPen,
@@ -33,6 +34,7 @@ const navItems = [
   { title: "Goals", url: "/goals", icon: Target },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Investments", url: "/investments", icon: TrendingUp },
+  { title: "Guide", url: "/guide", icon: Compass },
 ]
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
