@@ -26,13 +26,6 @@ const TIERING: Record<string, { model?: string; effort: string }> = {
   'research-company': { model: 'opus', effort: 'high' },
 }
 
-/**
- * Skills tiered ahead of their landing (open PRs for #55/#56). Their table
- * entries bind as soon as the directory exists; until then their absence is
- * not a failure. Remove entries from this list as the skills merge.
- */
-const PENDING = ['invest-strategy', 'research-company']
-
 /** Skills that take an argument and must hint it in the / menu. */
 const NEEDS_ARGUMENT_HINT = ['note', 'teach', 'validate-idea', 'improve-process']
 
@@ -56,11 +49,7 @@ describe('skill model/effort tiering', () => {
     const names = await skillNames()
     // Both directions: no untiered skill ships, no stale table entry lingers.
     expect(names.filter((n) => !(n in TIERING))).toEqual([])
-    expect(
-      Object.keys(TIERING).filter(
-        (n) => !names.includes(n) && !PENDING.includes(n),
-      ),
-    ).toEqual([])
+    expect(Object.keys(TIERING).filter((n) => !names.includes(n))).toEqual([])
   })
 
   it('each skill frontmatter matches its tier', async () => {
