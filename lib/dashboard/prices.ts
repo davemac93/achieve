@@ -141,9 +141,16 @@ export async function getPriceData(holdings: Holding[]): Promise<PriceData> {
     return { quotes: {}, fxToPln: {}, asOf: null, source: "none" }
   }
 
-  const tickers = [...new Set(holdings.map((h) => h.ticker))]
+  // Cash rows need no quote (valued at face); they still count for FX pairs.
+  const quotable = holdings.filter((h) => h.assetType !== "cash")
+  const tickers = [...new Set(quotable.map((h) => h.ticker))]
   const fxPairs = fxSymbolsFor(holdings)
   const requested = [...tickers, ...fxPairs.values()]
+
+  // Nothing to fetch (e.g. an all-PLN-cash portfolio) — trivially "live".
+  if (requested.length === 0) {
+    return { quotes: {}, fxToPln: {}, asOf: new Date().toISOString(), source: "live" }
+  }
 
   if (
     memory &&
@@ -181,9 +188,9 @@ export async function getPriceData(holdings: Holding[]): Promise<PriceData> {
       if (rate != null) fxToPln[ccy] = rate
     }
 
-    // All symbols failing (offline, rate-limited) is a failed fetch, not a
+    // Every symbol failing (offline, rate-limited) is a failed fetch, not a
     // live-but-empty result — fall through to the snapshot.
-    if (Object.keys(quotes).length === 0) throw new Error("no quotes")
+    if (results.every(([, price]) => price == null)) throw new Error("no quotes")
 
     const snapshot: Snapshot = {
       symbols: requested,
