@@ -40,11 +40,20 @@ interface Snapshot {
   asOf: string
 }
 
+/**
+ * After a failed live fetch, don't try again for this long — retrying on
+ * every page view during an outage hammers (and, against a 429 rate limiter,
+ * actively prolongs) the block. Fallbacks serve instantly meanwhile.
+ */
+const FAILURE_BACKOFF_MS = 10 * 60 * 1000
+
 let memory: { snapshot: Snapshot; at: number } | null = null
+let lastFailureAt: number | null = null
 
 /** Drop the in-memory price cache (tests only — module state persists). */
 export function resetPriceCache(): void {
   memory = null
+  lastFailureAt = null
 }
 
 /**
@@ -144,6 +153,11 @@ export async function getPriceData(holdings: Holding[]): Promise<PriceData> {
     return toPriceData(memory.snapshot, "live")
   }
 
+  // Inside the failure backoff window: don't touch the network at all.
+  if (lastFailureAt !== null && Date.now() - lastFailureAt < FAILURE_BACKOFF_MS) {
+    return serveFallback()
+  }
+
   try {
     const results = await Promise.all(
       requested.map(async (symbol) => {
@@ -178,13 +192,20 @@ export async function getPriceData(holdings: Holding[]): Promise<PriceData> {
       asOf: new Date().toISOString(),
     }
     memory = { snapshot, at: Date.now() }
+    lastFailureAt = null
     await writeSnapshot(snapshot)
     return toPriceData(snapshot, "live")
   } catch {
-    // Offline or the API is unavailable — serve the last snapshot if any.
-    // Memory stays unset so the next page load retries the live fetch.
-    const snapshot = await readSnapshot()
-    if (snapshot) return toPriceData(snapshot, "snapshot")
-    return { quotes: {}, fxToPln: {}, asOf: null, source: "none" }
+    // Offline or the API is unavailable — start the backoff window so page
+    // views stop hammering the provider, and serve the fallback.
+    lastFailureAt = Date.now()
+    return serveFallback()
   }
+}
+
+/** The no-network answer: last on-disk snapshot, else cost-basis (`none`). */
+async function serveFallback(): Promise<PriceData> {
+  const snapshot = await readSnapshot()
+  if (snapshot) return toPriceData(snapshot, "snapshot")
+  return { quotes: {}, fxToPln: {}, asOf: null, source: "none" }
 }
