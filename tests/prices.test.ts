@@ -116,6 +116,7 @@ describe('getPriceData degradation chain', () => {
   afterEach(async () => {
     delete process.env.ACHIEVE_VAULT_DIR
     vi.unstubAllGlobals()
+    vi.useRealTimers()
     await fs.rm(dir, { recursive: true, force: true })
   })
 
@@ -160,6 +161,38 @@ describe('getPriceData degradation chain', () => {
     expect(cached.source).toBe('snapshot')
     expect(cached.quotes).toEqual(live.quotes)
     expect(cached.asOf).toBe(live.asOf) // staleness label shows the original fetch time
+  })
+
+  it('backs off after a failure: page views inside the window fetch nothing', async () => {
+    const fetcher = vi.fn(async () => Promise.reject(new Error('rate limited')))
+    vi.stubGlobal('fetch', fetcher)
+
+    await getPriceData([vwce, gpw]) // fails, opens the backoff window
+    const calls = fetcher.mock.calls.length
+    const during = await getPriceData([vwce, gpw])
+
+    expect(fetcher.mock.calls.length).toBe(calls) // zero new requests
+    expect(during.source).toBe('none') // no snapshot in this vault yet
+  })
+
+  it('retries after the backoff window, and success clears the failure state', async () => {
+    vi.useFakeTimers({ now: new Date('2026-07-14T10:00:00Z') })
+    const failing = vi.fn(async () => Promise.reject(new Error('rate limited')))
+    vi.stubGlobal('fetch', failing)
+    await getPriceData([vwce, gpw]) // opens the window at 10:00
+
+    vi.setSystemTime(new Date('2026-07-14T10:11:00Z')) // window (10 min) expired
+    const working = vi.fn(stubYahoo(MARKET))
+    vi.stubGlobal('fetch', working)
+
+    const after = await getPriceData([vwce, gpw])
+    expect(after.source).toBe('live')
+    expect(working).toHaveBeenCalled()
+
+    // Success cleared the failure state: within the TTL we serve memory,
+    // and nothing counts as being in backoff.
+    const again = await getPriceData([vwce, gpw])
+    expect(again.source).toBe('live')
   })
 
   it('returns source "none" with no network and no snapshot', async () => {
