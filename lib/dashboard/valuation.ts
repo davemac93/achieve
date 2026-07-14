@@ -47,13 +47,16 @@ export function plnRate(
   return fxToPln[quoteCurrency] ?? null
 }
 
-/** Join holdings with market data. Missing quote or FX rate → null value/P&L. */
+/** Join holdings with market data. Missing quote or FX rate → null value/P&L.
+ * Cash needs no quote: its "price" is 1 unit of its own currency, so PLN cash
+ * is valued at face even fully offline, and foreign cash needs only FX. */
 export function priceHoldings(
   holdings: Holding[],
   data: PriceData,
 ): PricedHolding[] {
   return holdings.map((h) => {
-    const price = data.quotes[h.ticker.toLowerCase()] ?? null
+    const price =
+      h.assetType === "cash" ? 1 : (data.quotes[h.ticker.toLowerCase()] ?? null)
     const rate = plnRate(h.quoteCurrency, data.fxToPln)
     const costPln = h.shares * h.avgCost
     const valuePln =

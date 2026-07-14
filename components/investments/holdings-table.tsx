@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Pencil, Trash2 } from "lucide-react"
+import { Banknote, Pencil, Trash2 } from "lucide-react"
 
 import {
   addHoldingAction,
@@ -29,6 +29,51 @@ function fmtNative(value: number, currency: string): string {
   } catch {
     return `${value.toFixed(2)} ${currency}`
   }
+}
+
+/** Local-first instrument badges: deterministic color per ticker, no logo service. */
+const BADGE_COLORS = [
+  "bg-red-500",
+  "bg-orange-500",
+  "bg-amber-500",
+  "bg-lime-600",
+  "bg-emerald-500",
+  "bg-teal-500",
+  "bg-sky-500",
+  "bg-blue-500",
+  "bg-violet-500",
+  "bg-fuchsia-500",
+  "bg-rose-500",
+  "bg-cyan-600",
+]
+
+function badgeColor(ticker: string): string {
+  let hash = 0
+  for (const ch of ticker) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
+  return BADGE_COLORS[hash % BADGE_COLORS.length]!
+}
+
+function InstrumentBadge({
+  ticker,
+  assetType,
+}: {
+  ticker: string
+  assetType: string
+}) {
+  if (assetType === "cash") {
+    return (
+      <span className="bg-accent text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full">
+        <Banknote className="size-3.5" aria-hidden />
+      </span>
+    )
+  }
+  return (
+    <span
+      className={`${badgeColor(ticker)} flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white`}
+    >
+      {ticker.split(".")[0]!.slice(0, 2)}
+    </span>
+  )
 }
 
 function plClass(plPln: number | null): string {
@@ -171,7 +216,12 @@ export function HoldingsTable({ holdings }: { holdings: PricedHolding[] }) {
             <tbody>
               {holdings.map((h) => (
                 <tr key={h.id} className="group hover:bg-accent/50 border-b">
-                  <td className="px-2 py-2 font-medium">{h.ticker}</td>
+                  <td className="px-2 py-2 font-medium">
+                    <span className="flex items-center gap-2">
+                      <InstrumentBadge ticker={h.ticker} assetType={h.assetType} />
+                      {h.ticker}
+                    </span>
+                  </td>
                   <td className="px-2 py-2">{h.name}</td>
                   <td className="text-muted-foreground px-2 py-2">
                     {h.assetType}

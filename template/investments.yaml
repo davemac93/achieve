@@ -2,6 +2,8 @@
 # Flat list of holdings at cost basis. avgCost is per share in PLN, as actually
 # paid; quoteCurrency is the currency the instrument trades in on its exchange
 # (used by the prices layer for live valuation).
-# Each entry: { id, ticker, name, assetType: stock|etf, account, shares,
+# Each entry: { id, ticker, name, assetType: stock|etf|cash, account, shares,
 #               avgCost, quoteCurrency }
+# Cash rows are valued at face with no quote lookup: shares = amount and
+# avgCost = 1 for PLN cash; foreign cash converts via FX like everything else.
 holdings: []

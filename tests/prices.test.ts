@@ -51,6 +51,28 @@ function stubYahoo(prices: Record<string, number>): typeof fetch {
 
 const MARKET = { 'VWCE.DE': 125, PKN: 66, 'EURPLN=X': 4.4 }
 
+const cashPln: Holding = {
+  id: 'c1',
+  ticker: 'CASH',
+  name: 'XTB free cash',
+  assetType: 'cash',
+  account: 'IKE',
+  shares: 1050.77, // amount in PLN
+  avgCost: 1,
+  quoteCurrency: 'PLN',
+}
+
+const cashEur: Holding = {
+  id: 'c2',
+  ticker: 'CASH.EUR',
+  name: 'EUR cash',
+  assetType: 'cash',
+  account: 'IKE',
+  shares: 100, // amount in EUR
+  avgCost: 4.3, // PLN paid per EUR
+  quoteCurrency: 'EUR',
+}
+
 describe('parseChartPrice', () => {
   it('extracts the regular market price', () => {
     expect(parseChartPrice(chartPayload(125))).toBe(125)
@@ -92,6 +114,19 @@ describe('valuation math (PLN conversion)', () => {
     expect(h!.price).toBe(125) // quote known…
     expect(h!.valuePln).toBeNull() // …but unconvertible
     expect(h!.plPln).toBeNull()
+  })
+
+  it('values PLN cash at face even with no market data at all', () => {
+    const offline: PriceData = { quotes: {}, fxToPln: {}, asOf: null, source: 'none' }
+    const [h] = priceHoldings([cashPln], offline)
+    expect(h!.valuePln).toBeCloseTo(1050.77)
+    expect(h!.plPln).toBeCloseTo(0)
+  })
+
+  it('converts foreign cash via FX, surfacing FX profit/loss', () => {
+    const [h] = priceHoldings([cashEur], data)
+    expect(h!.valuePln).toBeCloseTo(100 * 4.4) // 440 PLN
+    expect(h!.plPln).toBeCloseTo(10) // paid 430, worth 440
   })
 
   it('summarize counts unpriced holdings at cost and reports coverage', () => {
@@ -161,6 +196,28 @@ describe('getPriceData degradation chain', () => {
     expect(cached.source).toBe('snapshot')
     expect(cached.quotes).toEqual(live.quotes)
     expect(cached.asOf).toBe(live.asOf) // staleness label shows the original fetch time
+  })
+
+  it('never requests a quote for cash rows (but still fetches FX for foreign cash)', async () => {
+    const fetcher = vi.fn(stubYahoo(MARKET))
+    vi.stubGlobal('fetch', fetcher)
+
+    await getPriceData([vwce, cashPln, cashEur])
+
+    const urls = fetcher.mock.calls.map((c) => String(c[0]))
+    expect(urls.some((u) => u.includes('CASH'))).toBe(false)
+    expect(urls.some((u) => u.includes('VWCE.DE'))).toBe(true)
+    expect(urls.some((u) => u.includes('EURPLN'))).toBe(true)
+  })
+
+  it('an all-PLN-cash portfolio needs no network and reads as live', async () => {
+    const fetcher = vi.fn(stubYahoo(MARKET))
+    vi.stubGlobal('fetch', fetcher)
+
+    const data = await getPriceData([cashPln])
+
+    expect(fetcher).not.toHaveBeenCalled()
+    expect(data.source).toBe('live')
   })
 
   it('backs off after a failure: page views inside the window fetch nothing', async () => {

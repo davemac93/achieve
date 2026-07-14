@@ -14,8 +14,9 @@ export interface Task {
   goal?: string
 }
 
-/** Asset categories a holding can have. Extend deliberately — the write path rejects anything else. */
-export const ASSET_TYPES = ["stock", "etf"] as const
+/** Asset categories a holding can have. Extend deliberately — the write path rejects anything else.
+ * `cash` is valued at face (shares = amount, avgCost = 1 for PLN) with no quote lookup. */
+export const ASSET_TYPES = ["stock", "etf", "cash"] as const
 export type AssetType = (typeof ASSET_TYPES)[number]
 
 /** A holding in `investments.yaml`. Dashboard is the primary writer. */
