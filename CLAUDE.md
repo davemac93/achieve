@@ -71,7 +71,7 @@ Dashboard owns `tasks.yaml`, `goal-status.yaml`, `investments.yaml` (holdings
 at cost basis, in PLN; agents read only), quote adds, diary, `user.md`, and
 `profile/evidence.yaml`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
-pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml`; the `/profile`
+pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml` (see below); the `/profile`
 skill owns the profile database (see below) and refreshes `user.md`
 (approve-gated, alongside the dashboard editor). The `/note` skill owns `notes/` — it writes each note
 through `scripts/write-note.ts` (the vault I/O path: atomic write + one labeled
@@ -91,6 +91,43 @@ skill refuses to run without `investments/strategy.md`. Skills ship in
 `template/.claude/skills/` and are scaffolded into each vault by `npm run
 setup` — which also writes `config.yaml` (the enabled module list) once, after
 which the user owns it. Agents are read-only elsewhere.
+
+## Goals — a twelve-month ceiling and derived progress
+
+`HORIZONS` is `direction → yearly → monthly → weekly`
+([lib/dashboard/goal-tree.ts](lib/dashboard/goal-tree.ts)). A **`direction`** is
+a north star: no status, no progress, no deadline. It exists so the AI can judge
+whether a goal points somewhere the user wants to go, and it is never trackable.
+Everything below it is, and `yearly` — twelve months — is a hard ceiling.
+
+- **Steps carry sequence.** A goal entry may declare `kind: learn | do`,
+  `after: [ids]` (prerequisites) and a `skill:` tag. `parent` says what contains
+  what; `after` says what waits on what, which the hierarchy alone cannot
+  express. `validateGoalTree` rejects `after` cycles, prerequisites pointing at
+  a direction, and any `kind`/`after`/`skill` on a direction.
+- **Progress is derived, never typed**
+  ([lib/dashboard/goal-progress.ts](lib/dashboard/goal-progress.ts)): a goal's
+  progress is the *unweighted* share of the leaf steps beneath it that are
+  ticked, rolled up weekly → monthly → yearly. `goal-status.yaml` holds one bit
+  per leaf step — there is deliberately no `progress` field, because a
+  percentage you can type is one you can move without doing the work, and
+  weights would look precise while being guesses. Directions get counts but no
+  percentage; the UI shows them no chip at all.
+- **Blocking is inherited.** A step is blocked while any prerequisite of its own
+  *or of an ancestor* is incomplete, and `setStepDone` refuses to tick it. That
+  is what keeps an irreversible step behind the ones that justify it.
+- **Ticking a `skill:`-tagged step appends evidence** (`goals:<stepId>` as the
+  source) — the goals half of the profile loop below.
+- **Migration** for vaults written before this schema:
+  [scripts/migrate-goals.ts](scripts/migrate-goals.ts) (`npm run migrate-goals`)
+  previews by default and writes only on `--write`, invoked by `/goals` after
+  approval. `3yr` becomes `direction`; **every id is preserved**, so ticks and
+  task links stay attached, and every dropped status entry is reported by id.
+  The conversion and the file renderers live in
+  [lib/dashboard/goal-content.ts](lib/dashboard/goal-content.ts), framework-free
+  like `profile-content.ts` so the script, the server and the tests share them;
+  the read layer also normalizes a `3yr` entry on the fly, so an unmigrated
+  vault still renders.
 
 ## Profile context database
 
@@ -112,9 +149,9 @@ record (what, when, which skill, and the source it came from) through
 labeled commit, idempotent on `(source, skill)` so a re-tick never inflates a
 count. `/profile` *reads* that log and proposes level promotions in
 `skills.yaml`, approve-gated. One writer per file survives, and every claimed
-skill has a dated trail behind it. The tagging that produces evidence lands with
-the goals redesign (#77); until then `recordEvidenceAction` in
-[app/actions.ts](app/actions.ts) is the API waiting for it.
+skill has a dated trail behind it. The tagging that produces evidence is a goal
+step's `skill:` field: `setStepDoneAction` appends on a tick and never retracts
+on an untick — the log is append-only, and the work happened either way.
 
 Migration for vaults written before the database:
 [scripts/migrate-profile.ts](scripts/migrate-profile.ts) parses `user.md` into a

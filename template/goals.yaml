@@ -1,6 +1,11 @@
 # Goal definitions — primary writer: /goals skill. Dashboard reads only.
-# Hierarchy: 3yr -> yearly -> monthly -> weekly via optional `parent` refs.
+# Hierarchy: direction -> yearly -> monthly -> weekly via optional `parent` refs.
+# A `direction` is a north star: no status, no progress, no deadline. Twelve
+# months (`yearly`) is the hard ceiling for anything trackable.
 # Strict tree softly enforced: orphans are allowed (flag them), the agent
 # steers toward full linkage.
-# Each entry: { id, horizon: 3yr|yearly|monthly|weekly, title, parent?, orphan? }
+# Each entry: { id, horizon: direction|yearly|monthly|weekly, title, parent?,
+#               orphan?, kind: learn|do, after: [ids], skill? }
+# `after` is sequence (what waits on what), which `parent` (containment)
+# cannot express; `skill` turns a tick into a profile evidence record.
 goals: []

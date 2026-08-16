@@ -34,8 +34,9 @@ A read-mostly window over your vault, with the simple human write actions built 
 
 - **Dashboard** — to-do list (add / complete / delete, optionally linked to a weekly goal), quote
   of the day, and your goal tree.
-- **Goals** — your 3-year → yearly → monthly → weekly tree, read-only; click a status chip to
-  advance not-started → in-progress → done.
+- **Goals** — your direction → yearly → monthly → weekly tree, read-only apart from one checkbox
+  per leaf step. Progress is derived from what you tick and rolls up the tree; a step whose
+  prerequisites are unfinished shows as blocked and cannot be ticked.
 - **Diary** — write dated entries. This is yours alone (see Privacy below).
 - **Notes** / **Projects** — surfaced from the vault's `notes/` and `projects/` directories.
 - **Profile** — your skills, experience and recent evidence, plus the `user.md` summary Claude
@@ -46,8 +47,12 @@ and each change is one atomic write plus one labeled git commit.
 
 ### Skills (run in Claude Code)
 
-- **`/goals`** — from a high-level vision, proposes a 3yr → yearly → monthly → weekly decomposition
-  for you to approve or edit, then writes `goals.yaml`.
+- **`/goals`** — finds candidate goals in gaps your own data already shows (each cited to the file
+  it came from), pushes back on the infeasible, and decomposes the one you pick into ordered
+  `learn`/`do` steps under a direction → yearly → monthly → weekly tree, then writes `goals.yaml`.
+  Twelve months is a hard ceiling for anything trackable; anything longer is a *direction* — a
+  north star with no status, progress or deadline. Progress is never typed: it is the share of leaf
+  steps ticked, rolled up the tree.
 - **`/profile`** — maintains the structured profile database (`profile/`: experience, skills,
   education, preferences), proposes skill promotions from the evidence log, and regenerates the
   short `user.md` summary (approve-gated).
@@ -64,6 +69,8 @@ Skills are approve-gated, never write outside the files they own, and never read
 
 - `npm run rotate` — advance the quote-of-the-day pointer (run on a daily schedule or by hand).
 - `npm run migrate-profile` — parse an older hand-written `user.md` into the `profile/` stores.
+- `npm run migrate-goals` — move a vault off the old `3yr` horizon and typed `progress` percentages
+  (preview by default; `-- --write` after you approve).
   Prints a preview and writes nothing until you pass `--write`; never overwrites existing content.
 
 ## The vault
@@ -83,7 +90,7 @@ vault/
     evidence.yaml    #   append-only log of skill-tagged work (dashboard-owned)
   tasks.yaml         # to-do items (dashboard-owned)
   goals.yaml         # goal tree definitions (/goals-owned)
-  goal-status.yaml   # volatile goal status/progress (dashboard-owned)
+  goal-status.yaml   # which leaf steps are ticked (dashboard-owned)
   quotes.yaml        # quotes + rotation pointer
   notes/             # markdown notes
   projects/          # project notes
