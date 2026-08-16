@@ -125,15 +125,12 @@ describe('enabled modules resolve against the registry', () => {
     ])
   })
 
-  it('auto-enables dependencies, transitively', () => {
-    // /review walks the goal tree, so reviews without goals is not a choice.
-    expect(resolveEnabledModules(['reviews'])).toEqual(['goals', 'reviews'])
-    // search indexes notes and projects.
-    expect(resolveEnabledModules(['search'])).toEqual([
-      'notes',
-      'projects',
-      'search',
-    ])
+  it('closes dependencies over transitively — none are declared today', () => {
+    // Reviews (→ goals) and Search (→ notes, projects) were the only modules
+    // with dependencies, and both are gone. The closure stays for the modules
+    // v2 adds; until then every id resolves to itself alone.
+    expect(MODULES.filter((m) => m.dependsOn.length > 0)).toEqual([])
+    expect(resolveEnabledModules(['notes'])).toEqual(['notes'])
   })
 
   it('drops ids it does not know, rather than breaking the dashboard', () => {
@@ -158,12 +155,12 @@ describe('the vault config reader', () => {
     expect(await getEnabledModuleIds()).toEqual(ALL)
   })
 
-  it('enables what the file lists, plus their dependencies', async () => {
+  it('enables what the file lists, in registry order', async () => {
     await fs.writeFile(
       path.join(dir, 'config.yaml'),
-      'modules:\n  - home\n  - reviews\n',
+      'modules:\n  - notes\n  - home\n',
     )
-    expect(await getEnabledModuleIds()).toEqual(['home', 'goals', 'reviews'])
+    expect(await getEnabledModuleIds()).toEqual(['home', 'notes'])
   })
 
   it('falls back to everything when the file has no module list', async () => {
@@ -211,7 +208,6 @@ describe('the dashboard chrome derives from registry × config', () => {
       'hasHoldings',
       'hasStrategy',
       'hasResearch',
-      'hasReview',
     ])
   })
 

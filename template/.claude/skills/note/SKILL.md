@@ -19,7 +19,7 @@ write the file by hand. This skill is distinct from `/profile`, which maintains
 
 - You write **only** notes under **`notes/`** — one `notes/<slug>.md` per note.
 - You never write `goals.yaml`, `goal-status.yaml`, `tasks.yaml`, `quotes.yaml`,
-  `reviews/`, `projects/`, `ideas/`, or `user.md`.
+  `projects/`, `ideas/`, or `user.md`.
 
 ## Sources you MAY read
 

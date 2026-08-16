@@ -51,7 +51,7 @@ six places.
   file means *all enabled*, so vaults scaffolded before v2 behave exactly as
   before; an explicit empty list means none.
 - **`dependsOn` is closed over transitively** — a module is never enabled
-  without the modules it reads (enabling `reviews` enables `goals`).
+  without the modules it reads.
 - **Install subset:** `ACHIEVE_MODULES=notes,goals npm run setup` scaffolds
   only those modules' seed files and skills, plus the base files, and records
   the resolved list in `config.yaml`. Setup *rejects* an unknown id (a typo at
@@ -70,9 +70,8 @@ six places.
 Dashboard owns `tasks.yaml`, `goal-status.yaml`, `investments.yaml` (holdings
 at cost basis, in PLN; agents read only), quote adds, diary, `user.md`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
-pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml`; `/review` owns
-`reviews/`; the `/profile` skill refreshes `user.md` (approve-gated, alongside
-the dashboard editor). The `/note` skill owns `notes/` — it writes each note
+pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml`; the `/profile`
+skill refreshes `user.md` (approve-gated, alongside the dashboard editor). The `/note` skill owns `notes/` — it writes each note
 through `scripts/write-note.ts` (the vault I/O path: atomic write + one labeled
 commit), never by hand; `/teach` creates new `learning` notes through that same
 `/note` write path (not a second writer). The `/validate-idea` and
@@ -91,15 +90,7 @@ skill refuses to run without `investments/strategy.md`. Skills ship in
 setup` — which also writes `config.yaml` (the enabled module list) once, after
 which the user owns it. Agents are read-only elsewhere.
 
-`vault/.search-index/` is a derived cache, not owned vault content: `npm run
-index` ([scripts/build-search-index.ts](scripts/build-search-index.ts))
-rebuilds it from scratch each time from `notes/` and `projects/`, it is
-excluded from the vault's own git history (`template/.gitignore`), and the
-`/search-vault` skill only ever reads it via `npm run search`
-([scripts/search-vault.ts](scripts/search-vault.ts)). Optional — everything
-else works with it absent.
-
-`vault/.cache/prices.json` is likewise derived, not vault content: the
+`vault/.cache/prices.json` is derived, not vault content: the
 dashboard's prices layer ([lib/dashboard/prices.ts](lib/dashboard/prices.ts))
 fetches quotes and FX from Yahoo Finance per page view (in-memory TTL cache),
 overwrites the snapshot after each successful fetch with a plain atomic write —

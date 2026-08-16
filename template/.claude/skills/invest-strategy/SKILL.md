@@ -20,7 +20,7 @@ rules. It is **not** a list of stock tips. This is a heavy-reasoning skill
 - You write **exactly one file: `investments/strategy.md`**. Nothing else.
 - `investments.yaml` is the **dashboard's** file (holdings at cost basis).
   Never write it — you only read it so the strategy reflects reality.
-- You never touch goals, tasks, notes, projects, quotes, reviews, `ideas/`,
+- You never touch goals, tasks, notes, projects, quotes, `ideas/`,
   or `user.md`.
 - The document is **living**: on later runs you load it and revise in place —
   never a second dated copy, never a rewrite the user didn't ask for.

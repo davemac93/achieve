@@ -1,6 +1,5 @@
 import {
   BookText,
-  CalendarCheck,
   Compass,
   FolderKanban,
   LayoutDashboard,
@@ -8,7 +7,6 @@ import {
   ListTodo,
   NotebookPen,
   Quote,
-  Search,
   Target,
   TrendingUp,
   UserRound,
@@ -35,7 +33,5 @@ export const MODULE_ICONS: Record<ModuleIconName, LucideIcon> = {
   UserRound,
   ListTodo,
   Quote,
-  CalendarCheck,
   Lightbulb,
-  Search,
 }

@@ -22,7 +22,7 @@ as a **new `learning` note**, so each session compounds.
   gives the atomic write + one labeled commit for free, and keeps a single
   writer for `notes/`.
 - You never edit the user's existing notes, and never write `goals.yaml`,
-  `tasks.yaml`, `reviews/`, `projects/`, `ideas/`, or `user.md`.
+  `tasks.yaml`, `projects/`, `ideas/`, or `user.md`.
 
 ## Sources you MAY read
 

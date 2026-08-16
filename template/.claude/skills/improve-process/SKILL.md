@@ -19,7 +19,7 @@ report is the record of what you concluded together, not a one-shot deliverable.
 - You write **exactly one thing**: a dated report under **`ideas/`** —
   `ideas/<YYYY-MM-DD>-<slug>.md` with `type: process`. Nothing else.
 - You never write `goals.yaml`, `goal-status.yaml`, `tasks.yaml`, `quotes.yaml`,
-  notes, projects, reviews, or `user.md`.
+  notes, projects, or `user.md`.
 - If a report for the same process and date already exists, update it rather
   than duplicating.
 
@@ -27,7 +27,6 @@ report is the record of what you concluded together, not a one-shot deliverable.
 
 - `user.md` — who the user is and how they work best.
 - `goals.yaml` + `goal-status.yaml` — which goals this process serves.
-- `reviews/**` — recent reviews often name what's stalling and why.
 - `tasks.yaml` — the concrete work the process produces.
 - `projects/*.md` — related project notes.
 - `notes/*.md` **except** any note whose frontmatter has `type: private`.
@@ -83,7 +82,7 @@ status: draft
 
 1. **Understand.** Ask the user *which* process they want to improve. Then read
    the allowed vault sources to reconstruct the current process and its
-   environment — the goals it serves, constraints, and what recent reviews say.
+   environment — the goals it serves and the constraints it works under.
    Do **not** open the diary.
 2. **Map** the current process back to the user: steps, pain points, what's
    already working. Confirm you've understood it before proposing changes.

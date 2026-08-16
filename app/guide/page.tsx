@@ -77,8 +77,8 @@ const STEPS: Record<GuideStepKey, Step> = {
     what: (
       <>
         The goal tree — 3-year → yearly → monthly → weekly — is the spine of
-        the whole system: tasks link to weekly goals, reviews walk the tree,
-        and skills read it for context.
+        the whole system: tasks link to weekly goals, and skills read it for
+        context.
       </>
     ),
     how: (
@@ -139,8 +139,7 @@ const STEPS: Record<GuideStepKey, Step> = {
         <TabLink href="/notes">Notes</TabLink> are typed (<K>working</K>,{" "}
         <K>learning</K>, <K>validation</K>, <K>private</K> — private ones are
         human-only). <K>learning</K> notes feed <K>/teach</K>, which quizzes
-        you on your own material; <K>/search-vault</K> finds notes
-        semantically.
+        you on your own material.
       </>
     ),
     how: (
@@ -216,22 +215,6 @@ const STEPS: Record<GuideStepKey, Step> = {
         research agents (business, financials, valuation, moat, risks) and
         judges the findings against your strategy. Requires the strategy step
         first.
-      </>
-    ),
-  },
-  hasReview: {
-    title: "Run your weekly review",
-    what: (
-      <>
-        The loop that closes the system: walk the week against the goal tree
-        and tasks, capture what moved and what stalled. The dashboard flags
-        when a review is due.
-      </>
-    ),
-    how: (
-      <>
-        Run <K>/review</K> in Claude Code once a week; it writes a dated file
-        under <K>reviews/weekly/</K> and clears the due flag.
       </>
     ),
   },

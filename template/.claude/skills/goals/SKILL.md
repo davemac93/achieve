@@ -17,7 +17,7 @@ owns the volatile status separately, so your job is purely the *structure*.
 - You write **exactly one file: `goals.yaml`**. Nothing else.
 - `goal-status.yaml` is the **dashboard's** file (status/progress). Never write
   it — that would put two writers on one concern.
-- You never touch tasks, quotes, notes, projects, reviews, `user.md`, or the
+- You never touch tasks, quotes, notes, projects, `user.md`, or the
   diary.
 
 ## Sources you MAY read
