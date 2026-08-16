@@ -1,4 +1,7 @@
-# Volatile goal status/progress — primary writer: dashboard. Agents read only.
+# Volatile per-step state — primary writer: dashboard. Agents read only.
 # Split from goals.yaml so no file has two writers.
-# Map of goal id -> { status: not-started|in-progress|done, progress?: 0-100 }
+# Map of goal id -> { done: true|false }, for leaf steps only.
+# There is no `progress` field on purpose: a goal's progress is the share of
+# its leaf steps ticked, derived in lib/dashboard/goal-progress.ts. A number you
+# can type is a number you can type without doing the work.
 status: {}

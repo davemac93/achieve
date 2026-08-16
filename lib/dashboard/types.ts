@@ -34,19 +34,44 @@ export interface Holding {
   quoteCurrency: string
 }
 
-/** A goal definition in `goals.yaml`. The `/goals` skill is the primary writer. */
+/**
+ * A goal definition in `goals.yaml`. The `/goals` skill is the primary writer.
+ *
+ * `direction` is the north star — no status, no progress, no deadline. It is
+ * context for judging whether a goal is feasible, never something you complete.
+ * Everything below it is trackable, and `yearly` (twelve months) is the hard
+ * ceiling for that. The runtime lists live in
+ * [goal-tree.ts](./goal-tree.ts) (`HORIZONS`, `GOAL_KINDS`).
+ */
 export interface Goal {
   id: string
-  horizon: "3yr" | "yearly" | "monthly" | "weekly"
+  horizon: "direction" | "yearly" | "monthly" | "weekly"
   title: string
   parent?: string
   orphan?: boolean
+  /** Steps only: `learn` acquires a capability, `do` produces a result. */
+  kind?: "learn" | "do"
+  /**
+   * Ids that must be complete before this one may be ticked. Hierarchy is not
+   * sequence — `parent` says what contains what, `after` says what waits on
+   * what, and an irreversible step needs the second.
+   */
+  after?: string[]
+  /** Ticking a step tagged with a skill appends to `profile/evidence.yaml`. */
+  skill?: string
 }
 
-/** Volatile goal status in `goal-status.yaml`. Dashboard is the primary writer. */
+/**
+ * Volatile per-step state in `goal-status.yaml`. Dashboard is the primary
+ * writer, and it records exactly one bit: ticked or not.
+ *
+ * There is deliberately no `progress` field. A percentage is a number you can
+ * type without doing the work; progress is instead *derived* from the share of
+ * leaf steps ticked (see [goal-progress.ts](./goal-progress.ts)), so the only
+ * way to move it is to finish something.
+ */
 export interface GoalStatus {
-  status: "not-started" | "in-progress" | "done"
-  progress?: number
+  done: boolean
 }
 
 /** A quote in `quotes.yaml`. */

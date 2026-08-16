@@ -18,11 +18,10 @@ import {
   type HoldingInput,
 } from "@/lib/dashboard/investments"
 import { addQuote } from "@/lib/dashboard/quotes"
-import { setGoalStatus } from "@/lib/dashboard/goals"
+import { setStepDone } from "@/lib/dashboard/goals"
 import { saveDiaryEntry } from "@/lib/dashboard/diary"
 import { saveProfile } from "@/lib/dashboard/profile"
 import { appendEvidence, type EvidenceInput } from "@/lib/dashboard/evidence"
-import type { GoalStatus } from "@/lib/dashboard/types"
 
 export async function addTaskAction(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "")
@@ -42,11 +41,26 @@ export async function deleteTaskAction(id: string): Promise<void> {
   revalidatePath("/")
 }
 
-export async function setGoalStatusAction(
-  id: string,
-  status: GoalStatus["status"],
-): Promise<void> {
-  await setGoalStatus(id, status)
+/**
+ * Tick or untick a leaf goal step. Two writes can follow one click, each its
+ * own labeled commit: the step's state, and — when the step carries a `skill:`
+ * tag — a record in the append-only evidence log that a real piece of work
+ * backs that skill.
+ *
+ * Unticking never retracts evidence: the log is append-only, and the work did
+ * happen even if the step is reopened. `appendEvidence` is idempotent on
+ * `(source, skill)`, so a re-tick never inflates a count either.
+ */
+export async function setStepDoneAction(id: string, done: boolean): Promise<void> {
+  const step = await setStepDone(id, done)
+  if (done && step.skill) {
+    await appendEvidence({
+      skill: step.skill,
+      what: step.title,
+      source: `goals:${step.id}`,
+    })
+    revalidatePath("/profile")
+  }
   revalidatePath("/")
   revalidatePath("/goals")
 }

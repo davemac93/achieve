@@ -2,10 +2,9 @@ import { Quote as QuoteIcon } from "lucide-react"
 
 import { getTasks } from "@/lib/dashboard/tasks"
 import { getCurrentQuote } from "@/lib/dashboard/quotes"
-import { getGoalsWithStatus } from "@/lib/dashboard/goals"
+import { getGoalTreeView } from "@/lib/dashboard/goals"
 import { getProjects } from "@/lib/dashboard/projects"
 import { getNotes } from "@/lib/dashboard/notes"
-import { orderGoalTree } from "@/lib/dashboard/goal-tree"
 import { AddQuote } from "@/components/dashboard/add-quote"
 import { TodoList } from "@/components/dashboard/todo-list"
 import { GoalList } from "@/components/goals/goal-list"
@@ -21,15 +20,12 @@ export default async function DashboardPage() {
   const [tasks, quote, goals, projects, notes] = await Promise.all([
     getTasks(),
     getCurrentQuote(),
-    getGoalsWithStatus(),
+    getGoalTreeView(),
     getProjects(),
     getNotes(),
   ])
 
   const openCount = tasks.filter((t) => !t.done).length
-  const orderedGoals = orderGoalTree(goals).map(
-    (g) => goals.find((x) => x.id === g.id)!,
-  )
   const weeklyGoals = goals
     .filter((g) => g.horizon === "weekly")
     .map((g) => ({ id: g.id, title: g.title }))
@@ -81,17 +77,17 @@ export default async function DashboardPage() {
           <CardTitle>Goals</CardTitle>
           <CardDescription>
             Decomposed with the <code>/goals</code> skill — definitions
-            read-only; click a status to advance it.
+            read-only; tick a step to move the progress it rolls up into.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {goals.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               No goals yet. Run the <code>/goals</code> skill in Claude Code to
-              decompose a vision into 3-year → yearly → monthly → weekly goals.
+              find a goal in your own data and break it into ordered steps.
             </p>
           ) : (
-            <GoalList goals={orderedGoals} />
+            <GoalList goals={goals} />
           )}
         </CardContent>
       </Card>

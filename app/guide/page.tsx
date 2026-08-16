@@ -99,17 +99,20 @@ const STEPS: Record<GuideStepKey, Step> = {
     title: "Decompose your goals",
     what: (
       <>
-        The goal tree — 3-year → yearly → monthly → weekly — is the spine of
+        The goal tree — direction → yearly → monthly → weekly — is the spine of
         the whole system: tasks link to weekly goals, and skills read it for
-        context.
+        context. A direction is a north star with no deadline; everything below
+        it fits inside twelve months.
       </>
     ),
     how: (
       <>
-        Run <K>/goals</K> in Claude Code (from the vault directory) and
-        describe your vision; it proposes the tree and writes it only after
-        you approve. The <TabLink href="/goals">Goals</TabLink> tab renders it
-        read-only — click a status there to advance it.
+        Run <K>/goals</K> in Claude Code (from the vault directory): it finds
+        candidate goals in gaps your own files already show, checks them for
+        feasibility, and breaks the one you pick into ordered steps — written
+        only after you approve. The <TabLink href="/goals">Goals</TabLink> tab
+        renders it read-only apart from the checkbox on each step; progress
+        rolls up from what you tick.
       </>
     ),
   },
