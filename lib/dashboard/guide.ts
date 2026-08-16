@@ -10,26 +10,18 @@ import { getProjects } from "@/lib/dashboard/projects"
 import { getHoldings } from "@/lib/dashboard/investments"
 import { getProfile } from "@/lib/dashboard/profile"
 import { listWeeklyReviews } from "@/lib/dashboard/reviews"
+import type { GuideStepKey } from "@/lib/modules/registry"
 
 /**
  * Read-only progress flags for the Guide tab's onboarding checklist. Each flag
  * is derived from what actually exists in the vault — the guide never writes
  * anything, so completing a step anywhere (dashboard or a skill) ticks it here.
+ *
+ * The keys are the registry's step keys, so a module declaring a step with no
+ * flag behind it fails to compile. Every flag is computed whatever the enabled
+ * set is; the Guide page renders only the enabled modules' steps.
  */
-export interface GuideProgress {
-  vaultReady: boolean
-  profileFilled: boolean
-  hasGoals: boolean
-  hasTasks: boolean
-  hasQuote: boolean
-  hasDiaryEntry: boolean
-  hasNotes: boolean
-  hasProjects: boolean
-  hasHoldings: boolean
-  hasStrategy: boolean
-  hasResearch: boolean
-  hasReview: boolean
-}
+export type GuideProgress = Record<GuideStepKey, boolean>
 
 /** The template ships user.md with italic placeholders; any of them still
  * present means the profile hasn't been made the user's own yet. */

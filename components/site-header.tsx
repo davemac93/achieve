@@ -2,22 +2,15 @@
 
 import { usePathname } from "next/navigation"
 
+import { routeTitles, type ModuleId } from "@/lib/modules/registry"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
-const titles: Record<string, string> = {
-  "/": "Dashboard",
-  "/notes": "Notes",
-  "/diary": "Diary",
-  "/goals": "Goals",
-  "/projects": "Projects",
-  "/investments": "Investments",
-  "/guide": "Guide",
-  "/profile": "Profile",
-}
-
-export function SiteHeader() {
+/** Titles are the enabled modules' labels — nested routes (`/notes/<slug>`)
+ * fall back to their first segment, so a note page still reads "Notes". */
+export function SiteHeader({ enabledModules }: { enabledModules: ModuleId[] }) {
   const pathname = usePathname()
+  const titles = routeTitles(enabledModules)
   const segment = "/" + (pathname.split("/")[1] ?? "")
   const title = titles[pathname] ?? titles[segment] ?? "achieve"
 
