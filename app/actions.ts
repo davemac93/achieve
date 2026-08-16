@@ -21,6 +21,7 @@ import { addQuote } from "@/lib/dashboard/quotes"
 import { setGoalStatus } from "@/lib/dashboard/goals"
 import { saveDiaryEntry } from "@/lib/dashboard/diary"
 import { saveProfile } from "@/lib/dashboard/profile"
+import { appendEvidence, type EvidenceInput } from "@/lib/dashboard/evidence"
 import type { GoalStatus } from "@/lib/dashboard/types"
 
 export async function addTaskAction(formData: FormData): Promise<void> {
@@ -111,5 +112,17 @@ export async function saveProfileAction(formData: FormData): Promise<void> {
   const content = String(formData.get("content") ?? "")
   if (!content.trim()) return
   await saveProfile(content)
+  revalidatePath("/profile")
+}
+
+/**
+ * Append one record to the evidence log — the dashboard's half of the profile
+ * writer split (the `/profile` skill owns `skills.yaml` and never writes here).
+ *
+ * This is the API tagged goal steps call when they are ticked (#77). Idempotent
+ * on `(source, skill)`, so re-ticking a step never inflates the count.
+ */
+export async function recordEvidenceAction(input: EvidenceInput): Promise<void> {
+  await appendEvidence(input)
   revalidatePath("/profile")
 }

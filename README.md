@@ -38,7 +38,8 @@ A read-mostly window over your vault, with the simple human write actions built 
   advance not-started → in-progress → done.
 - **Diary** — write dated entries. This is yours alone (see Privacy below).
 - **Notes** / **Projects** — surfaced from the vault's `notes/` and `projects/` directories.
-- **Profile** — edit `user.md`, the file Claude loads at the start of every session.
+- **Profile** — your skills, experience and recent evidence, plus the `user.md` summary Claude
+  loads at the start of every session.
 
 Every write goes through a server action into the vault I/O layer — the browser never touches disk,
 and each change is one atomic write plus one labeled git commit.
@@ -47,20 +48,23 @@ and each change is one atomic write plus one labeled git commit.
 
 - **`/goals`** — from a high-level vision, proposes a 3yr → yearly → monthly → weekly decomposition
   for you to approve or edit, then writes `goals.yaml`.
-- **`/profile`** — refreshes `user.md` from your goals, projects, and non-private notes
-  (approve-gated).
+- **`/profile`** — maintains the structured profile database (`profile/`: experience, skills,
+  education, preferences), proposes skill promotions from the evidence log, and regenerates the
+  short `user.md` summary (approve-gated).
 - **`/note`** — turns raw input into a summarized, categorized note under `notes/`, written through
   the vault I/O path as one labeled commit.
 - **`/teach`** — runs an active-recall learning session grounded in your `learning` notes and
   `user.md`, then captures what stuck as a new `learning` note (via the `/note` write path).
 
-Skills are approve-gated, never write outside the one file they own, and never read your diary or
+Skills are approve-gated, never write outside the files they own, and never read your diary or
 `type: private` notes. They ship in `template/.claude/skills/` and are copied into each vault by
 `npm run setup`.
 
 ### Scripts
 
 - `npm run rotate` — advance the quote-of-the-day pointer (run on a daily schedule or by hand).
+- `npm run migrate-profile` — parse an older hand-written `user.md` into the `profile/` stores.
+  Prints a preview and writes nothing until you pass `--write`; never overwrites existing content.
 
 ## The vault
 
@@ -70,7 +74,13 @@ Skills are approve-gated, never write outside the one file they own, and never r
 vault/
   CLAUDE.md          # auto-loaded by Claude Code; imports user.md
   config.yaml        # which modules this vault runs (delete it to enable all)
-  user.md            # your profile
+  user.md            # the short profile summary Claude auto-loads (/profile + dashboard)
+  profile/           # the profile context database, read on demand
+    experience/      #   one markdown file per role (/profile-owned)
+    skills.yaml      #   skill levels (/profile-owned)
+    education.yaml   #   schooling (/profile-owned)
+    preferences.yaml #   how you work best (/profile-owned)
+    evidence.yaml    #   append-only log of skill-tagged work (dashboard-owned)
   tasks.yaml         # to-do items (dashboard-owned)
   goals.yaml         # goal tree definitions (/goals-owned)
   goal-status.yaml   # volatile goal status/progress (dashboard-owned)

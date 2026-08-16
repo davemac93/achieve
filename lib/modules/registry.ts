@@ -35,6 +35,7 @@ export type ModuleId =
 export type GuideStepKey =
   | "vaultReady"
   | "profileFilled"
+  | "hasSkills"
   | "hasGoals"
   | "hasTasks"
   | "hasQuote"
@@ -113,10 +114,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: "UserRound",
     route: "/profile",
     sidebarOrder: null,
-    vaultPaths: ["user.md"],
+    // `user.md` is the short auto-loaded summary; `profile/` is the context
+    // database behind it (evidence.yaml inside it is dashboard-owned).
+    vaultPaths: ["user.md", "profile/"],
     skills: ["profile"],
-    seedFiles: ["user.md"],
-    guideSteps: ["profileFilled"],
+    seedFiles: ["user.md", "profile"],
+    guideSteps: ["profileFilled", "hasSkills"],
     dependsOn: [],
   },
   {

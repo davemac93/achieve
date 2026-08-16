@@ -1,0 +1,10 @@
+# How you work best — the part of your profile that changes how skills help
+# you, not what they know about you. Primary writer: the `/profile` skill
+# (approve-gated); yours to edit by hand as well.
+#
+# workStyle: how you like to work and be helped.
+# constraints: hard limits — time, health, obligations, things you won't do.
+# energyPatterns: when you are sharp, when you are not.
+workStyle: []
+constraints: []
+energyPatterns: []

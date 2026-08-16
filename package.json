@@ -9,6 +9,7 @@
     "setup": "node scripts/setup.mjs",
     "rotate": "node scripts/rotate-quote.ts",
     "note": "node scripts/write-note.ts",
+    "migrate-profile": "node scripts/migrate-profile.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

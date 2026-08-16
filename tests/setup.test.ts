@@ -37,7 +37,14 @@ const EXPECTED_FILES = [
   'user.md',
   'CLAUDE.md',
 ]
-const EXPECTED_DIRS = ['notes', 'diary', 'projects', 'ideas']
+const EXPECTED_DIRS = [
+  'notes',
+  'diary',
+  'projects',
+  'ideas',
+  'profile',
+  path.join('profile', 'experience'),
+]
 
 describe('setup script', () => {
   let tmp: string

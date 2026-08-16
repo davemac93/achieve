@@ -8,7 +8,7 @@ import { listDiaryDates } from "@/lib/dashboard/diary"
 import { getNotes } from "@/lib/dashboard/notes"
 import { getProjects } from "@/lib/dashboard/projects"
 import { getHoldings } from "@/lib/dashboard/investments"
-import { getProfile } from "@/lib/dashboard/profile"
+import { getProfile, getSkills } from "@/lib/dashboard/profile"
 import type { GuideStepKey } from "@/lib/modules/registry"
 
 /**
@@ -31,6 +31,7 @@ export async function getGuideProgress(): Promise<GuideProgress> {
 
   const [
     profile,
+    skills,
     goals,
     tasks,
     quote,
@@ -42,6 +43,7 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     research,
   ] = await Promise.all([
     getProfile(),
+    getSkills(),
     getGoals(),
     getTasks(),
     getCurrentQuote(),
@@ -57,6 +59,7 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     vaultReady: profile.trim() !== "",
     profileFilled:
       profile.trim() !== "" && !profile.includes(PROFILE_PLACEHOLDER),
+    hasSkills: skills.length > 0,
     hasGoals: goals.length > 0,
     hasTasks: tasks.length > 0,
     hasQuote: quote !== null,

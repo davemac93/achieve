@@ -1,0 +1,16 @@
+# Append-only evidence log: work you actually completed, tagged with the skill
+# it exercised.
+#
+# Primary writer: the DASHBOARD, and nothing else. Ticking a step tagged with a
+# skill appends one record here (atomic write + one labeled commit). No skill
+# ever writes this file — `/profile` reads it to propose promotions in
+# `skills.yaml`, which is what keeps a claimed skill honest: every level has a
+# dated trail behind it.
+#
+# evidence:
+#   - id: 7f3c1e2a-...
+#     skill: Kubernetes
+#     what: Deploy the ingress controller
+#     when: 2026-03-14T09:12:00.000Z
+#     source: goals:w12-step-3
+evidence: []

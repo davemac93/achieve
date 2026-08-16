@@ -67,6 +67,76 @@ export interface ProjectWithBody extends Project {
   body: string
 }
 
+/**
+ * The proficiency ladder in `profile/skills.yaml`, weakest first. Promotion
+ * moves one rung at a time and only with evidence behind it — the `/profile`
+ * skill proposes, the user approves.
+ */
+export const SKILL_LEVELS = ["basic", "working", "strong", "expert"] as const
+export type SkillLevel = (typeof SKILL_LEVELS)[number]
+
+/** A skill in `profile/skills.yaml`. The `/profile` skill is the primary writer. */
+export interface ProfileSkill {
+  skill: string
+  level: SkillLevel
+  /** Evidence records that stood behind the level when it was last reviewed. */
+  evidenceCount: number
+  /** ISO date (`YYYY-MM-DD`) the skill was last exercised, if known. */
+  lastUsed?: string
+}
+
+/** One role, from `profile/experience/<slug>.md`. `/profile` is the writer. */
+export interface Experience {
+  slug: string
+  company: string
+  title: string
+  /** `YYYY-MM` (or `YYYY`) — free-form enough for a CV, sortable as text. */
+  start: string
+  /** Absent means the role is current. */
+  end?: string
+  tech: string[]
+  /** The narrative achievements — the markdown body of the file. */
+  body: string
+}
+
+/** An entry in `profile/education.yaml`. `/profile` is the writer. */
+export interface Education {
+  institution: string
+  qualification: string
+  start?: string
+  end?: string
+  notes?: string
+}
+
+/**
+ * `profile/preferences.yaml` — how the user works best. Three plain lists so
+ * the file stays readable by hand; `/profile` is the writer.
+ */
+export interface Preferences {
+  workStyle: string[]
+  constraints: string[]
+  energyPatterns: string[]
+}
+
+/**
+ * A record in `profile/evidence.yaml` — append-only, and the **dashboard** is
+ * its only writer (ticking a step tagged with a skill appends one). `/profile`
+ * reads these to propose skill promotions but never writes the file: that split
+ * is what keeps one writer per file, and what keeps a future CV honest — every
+ * claimed skill has a dated trail behind it.
+ */
+export interface EvidenceRecord {
+  id: string
+  /** The skill the completed work is evidence for. */
+  skill: string
+  /** What was done, in the user's own words (the step title). */
+  what: string
+  /** ISO-8601 timestamp of when it was recorded. */
+  when: string
+  /** Where it came from, e.g. `goals:<stepId>` — the trail back to the work. */
+  source: string
+}
+
 /** A note, from a markdown file in `notes/`. The `/note` skill writes these. */
 export interface Note {
   slug: string

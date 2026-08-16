@@ -1,0 +1,16 @@
+# Your skills, with the level each one is claimed at.
+#
+# Primary writer: the `/profile` skill (approve-gated). It proposes promotions
+# from `evidence.yaml` — "6 Kubernetes steps completed since March, move basic
+# → working?" — and writes only what you approve. Edit by hand any time.
+#
+# level: basic | working | strong | expert
+# evidenceCount: how many evidence records stood behind the level when it was
+#   last reviewed. lastUsed: YYYY-MM-DD, optional.
+#
+# skills:
+#   - skill: Kubernetes
+#     level: working
+#     evidenceCount: 6
+#     lastUsed: 2026-03-14
+skills: []
