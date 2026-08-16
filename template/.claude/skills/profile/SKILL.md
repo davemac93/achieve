@@ -46,5 +46,5 @@ That is the complete allow-list. If you want a programmatic gather, it matches
 ## Boundaries
 
 - You write exactly one file: `user.md`. You never touch goals, tasks, notes,
-  projects, quotes, reviews, or the diary.
+  projects, quotes, or the diary.
 - Keep it factual and grounded in the sources; do not invent biography.

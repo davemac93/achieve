@@ -27,9 +27,7 @@ export type ModuleId =
   | "notes"
   | "projects"
   | "investments"
-  | "reviews"
   | "ideas"
-  | "search"
   | "guide"
 
 /** A checklist step on the Guide tab; the flag it ticks off lives in
@@ -46,7 +44,6 @@ export type GuideStepKey =
   | "hasHoldings"
   | "hasStrategy"
   | "hasResearch"
-  | "hasReview"
 
 /** Names of the lucide icons modules may use — bound to components in
  * [icons.ts](./icons.ts), which the type keeps exhaustive in both directions. */
@@ -61,9 +58,7 @@ export type ModuleIconName =
   | "UserRound"
   | "ListTodo"
   | "Quote"
-  | "CalendarCheck"
   | "Lightbulb"
-  | "Search"
 
 export interface ModuleDefinition {
   id: ModuleId
@@ -71,7 +66,7 @@ export interface ModuleDefinition {
   label: string
   icon: ModuleIconName
   /** Dashboard route it owns, or null for modules that render inside another
-   * page (Tasks and Quotes are home cards) or have no UI yet (Ideas, Search). */
+   * page (Tasks and Quotes are home cards) or have no UI yet (Ideas). */
   route: string | null
   /**
    * Position in the sidebar nav; null means no sidebar entry — either the
@@ -209,18 +204,6 @@ export const MODULES: ModuleDefinition[] = [
     dependsOn: [],
   },
   {
-    id: "reviews",
-    label: "Reviews",
-    icon: "CalendarCheck",
-    route: null, // surfaced as the "review is due" banner on the home page
-    sidebarOrder: null,
-    vaultPaths: ["reviews/"],
-    skills: ["review"],
-    seedFiles: ["reviews"],
-    guideSteps: ["hasReview"],
-    dependsOn: ["goals"], // a review walks the goal tree
-  },
-  {
     id: "ideas",
     label: "Ideas",
     icon: "Lightbulb",
@@ -231,19 +214,6 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["ideas"],
     guideSteps: [],
     dependsOn: [],
-  },
-  {
-    id: "search",
-    label: "Search",
-    icon: "Search",
-    route: null, // CLI-only (`npm run index` / `npm run search`)
-    sidebarOrder: null,
-    // `.search-index/` is a derived cache, not owned vault content.
-    vaultPaths: [],
-    skills: ["search-vault"],
-    seedFiles: [],
-    guideSteps: [],
-    dependsOn: ["notes", "projects"], // it indexes exactly these
   },
   {
     id: "guide",

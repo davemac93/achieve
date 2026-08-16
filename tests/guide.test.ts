@@ -66,7 +66,6 @@ describe('guide progress derives from what exists in the vault', () => {
     )
     await put(dir, 'investments/strategy.md', '# Strategy\n')
     await put(dir, 'investments/research/2026-07-13-vwce.md', '# VWCE\n')
-    await put(dir, 'reviews/weekly/2026-07-13.md', '# Review\n')
 
     const progress = await getGuideProgress()
     expect(progress).toEqual({
@@ -81,7 +80,6 @@ describe('guide progress derives from what exists in the vault', () => {
       hasHoldings: true,
       hasStrategy: true,
       hasResearch: true,
-      hasReview: true,
     })
   })
 })

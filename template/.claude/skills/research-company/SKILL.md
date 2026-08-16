@@ -28,7 +28,7 @@ write nothing. Do not improvise a strategy or fall back to generic judgment.
   report instead of duplicating.
 - You never write `investments/strategy.md` (that is `/invest-strategy`'s
   file), `investments.yaml` (the dashboard's), goals, tasks, notes, projects,
-  reviews, `ideas/`, or `user.md`.
+  `ideas/`, or `user.md`.
 
 ## Sources you MAY read
 

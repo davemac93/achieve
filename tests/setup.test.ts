@@ -37,7 +37,7 @@ const EXPECTED_FILES = [
   'user.md',
   'CLAUDE.md',
 ]
-const EXPECTED_DIRS = ['notes', 'diary', 'projects', 'reviews/weekly', 'reviews/monthly']
+const EXPECTED_DIRS = ['notes', 'diary', 'projects', 'ideas']
 
 describe('setup script', () => {
   let tmp: string
@@ -65,7 +65,7 @@ describe('setup script', () => {
 
   it('scaffolds the bundled skills into the vault', async () => {
     expect(runSetup(vaultDir).code).toBe(0)
-    for (const name of ['profile', 'goals', 'review']) {
+    for (const name of ['profile', 'goals', 'note']) {
       const skill = path.join(vaultDir, '.claude', 'skills', name, 'SKILL.md')
       expect(await fs.stat(skill).then((s) => s.isFile())).toBe(true)
     }
@@ -100,10 +100,9 @@ describe('setup script', () => {
   })
 
   it('scaffolds only the enabled modules — files, skills and config alike', async () => {
-    // reviews pulls goals in behind it (a review walks the goal tree).
-    expect(runSetup(vaultDir, 'notes,reviews').code).toBe(0)
+    expect(runSetup(vaultDir, 'notes,goals').code).toBe(0)
 
-    for (const rel of ['notes', 'reviews/weekly', 'goals.yaml', 'CLAUDE.md']) {
+    for (const rel of ['notes', 'goals.yaml', 'goal-status.yaml', 'CLAUDE.md']) {
       expect(await fs.stat(path.join(vaultDir, rel)).then(() => true)).toBe(true)
     }
     for (const rel of ['investments.yaml', 'user.md', 'diary']) {
@@ -117,7 +116,7 @@ describe('setup script', () => {
     }
 
     const skills = await fs.readdir(path.join(vaultDir, '.claude', 'skills'))
-    expect(skills.sort()).toEqual(['goals', 'note', 'review', 'teach'])
+    expect(skills.sort()).toEqual(['goals', 'note', 'teach'])
 
     const config = await fs.readFile(path.join(vaultDir, 'config.yaml'), 'utf8')
     expect(config).toContain('- goals')

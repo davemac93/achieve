@@ -19,7 +19,7 @@ skeptical: a weak verdict backed by evidence is more useful than optimism.
 - You write **exactly one thing**: a dated report under **`ideas/`** —
   `ideas/<YYYY-MM-DD>-<slug>.md` with `type: business`. Nothing else.
 - You never write `goals.yaml`, `goal-status.yaml`, `tasks.yaml`, `quotes.yaml`,
-  notes, projects, reviews, or `user.md`. A validation is a record the user acts
+  notes, projects, or `user.md`. A validation is a record the user acts
   on later; it does not edit the source data.
 - If a report for the same idea and date already exists, update it rather than
   duplicating.

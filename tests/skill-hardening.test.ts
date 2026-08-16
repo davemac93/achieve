@@ -18,11 +18,9 @@ const TIERING: Record<string, { model?: string; effort: string }> = {
   'improve-process': { model: 'opus', effort: 'high' },
   goals: { model: 'opus', effort: 'high' },
   'invest-strategy': { model: 'opus', effort: 'high' },
-  review: { effort: 'medium' },
   teach: { effort: 'medium' },
   profile: { effort: 'medium' },
   note: { model: 'sonnet', effort: 'low' },
-  'search-vault': { effort: 'low' },
   'research-company': { model: 'opus', effort: 'high' },
 }
 

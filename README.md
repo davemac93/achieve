@@ -1,8 +1,8 @@
 # achieve — Personal OS
 
 A local-first, open-source **personal operating system**. Your data lives as plain files on your
-own disk (the "vault"); AI agents you run through **Claude Code** help you set goals, review
-progress weekly, and keep a profile of who you are so every session has context. A local Next.js
+own disk (the "vault"); AI agents you run through **Claude Code** help you set goals, capture what
+you learn, and keep a profile of who you are so every session has context. A local Next.js
 dashboard is the visual window — and the place you handle quick human actions (ticking tasks,
 writing diary entries, adding quotes, editing your profile).
 
@@ -33,7 +33,7 @@ vault.
 A read-mostly window over your vault, with the simple human write actions built in:
 
 - **Dashboard** — to-do list (add / complete / delete, optionally linked to a weekly goal), quote
-  of the day, your goal tree, and a banner when a weekly review is due.
+  of the day, and your goal tree.
 - **Goals** — your 3-year → yearly → monthly → weekly tree, read-only; click a status chip to
   advance not-started → in-progress → done.
 - **Diary** — write dated entries. This is yours alone (see Privacy below).
@@ -47,16 +47,12 @@ and each change is one atomic write plus one labeled git commit.
 
 - **`/goals`** — from a high-level vision, proposes a 3yr → yearly → monthly → weekly decomposition
   for you to approve or edit, then writes `goals.yaml`.
-- **`/review`** — walks your progress against the goal tree and the week's tasks, then writes a
-  dated review under `reviews/weekly/`.
 - **`/profile`** — refreshes `user.md` from your goals, projects, and non-private notes
   (approve-gated).
 - **`/note`** — turns raw input into a summarized, categorized note under `notes/`, written through
   the vault I/O path as one labeled commit.
 - **`/teach`** — runs an active-recall learning session grounded in your `learning` notes and
   `user.md`, then captures what stuck as a new `learning` note (via the `/note` write path).
-- **`/search-vault`** — semantic search over non-private notes and projects via a local,
-  file-based vector index (`npm run index` / `npm run search`). Optional and read-only.
 
 Skills are approve-gated, never write outside the one file they own, and never read your diary or
 `type: private` notes. They ship in `template/.claude/skills/` and are copied into each vault by
@@ -65,13 +61,6 @@ Skills are approve-gated, never write outside the one file they own, and never r
 ### Scripts
 
 - `npm run rotate` — advance the quote-of-the-day pointer (run on a daily schedule or by hand).
-- `npm run review-due` — print whether a weekly review is due; exits 0 (due) / 1 (not due), so a
-  cron wrapper can branch on it. Read-only.
-- `npm run index` — (re)build the local semantic search index from `notes/` and `projects/`
-  (excludes `type: private` notes, `status: private` projects, and always excludes `diary/`).
-  Optional — everything else works with it absent. First run downloads a small local embedding
-  model; no API key or server required.
-- `npm run search -- "<query>"` — query the search index; prints JSON matches, most relevant first.
 
 ## The vault
 
@@ -89,9 +78,6 @@ vault/
   notes/             # markdown notes
   projects/          # project notes
   diary/             # dated entries — human-only, never read by AI
-  reviews/weekly/    # dated weekly reviews (/review-owned)
-  reviews/monthly/
-  .search-index/     # optional local vector index cache — derived, gitignored, rebuild anytime
 ```
 
 Each file has exactly one primary writer, so no two writers ever contend on the same file.
@@ -184,9 +170,8 @@ privacy boundary).
 
 ## Status
 
-**v1 complete** — vault I/O layer, dashboard, the `/goals`, `/review`, and `/profile` skills, and
-the quote-rotation and review-due scripts are all shipped. Next work is scoped in the v2 and v3
-roadmaps above.
+**v1 complete** — vault I/O layer, dashboard, the `/goals` and `/profile` skills, and the
+quote-rotation script are all shipped. Next work is scoped in the v2 and v3 roadmaps above.
 
 ## License
 
