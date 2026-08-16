@@ -1,0 +1,9 @@
+# Application pipeline — primary writer: dashboard. Agents read only.
+# One row per jobs/<company>-<role>/ folder: where it stands, and the date it
+# reached each stage. The documents in the folder (jd.md, fit.md, cv.md) belong
+# to the /cv skill; this file holds the volatile state, so no file has two
+# writers — the same split as goals.yaml vs goal-status.yaml.
+# A folder with no row here still shows in the pipeline, as `saved`.
+# Each entry: { slug, status: saved|applied|interview|offer|rejected,
+#               dates: { <status>: YYYY-MM-DD } }
+applications: []

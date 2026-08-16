@@ -22,10 +22,11 @@ const TIERING: Record<string, { model?: string; effort: string }> = {
   profile: { effort: 'medium' },
   note: { model: 'sonnet', effort: 'low' },
   'research-company': { model: 'opus', effort: 'high' },
+  cv: { model: 'opus', effort: 'high' },
 }
 
 /** Skills that take an argument and must hint it in the / menu. */
-const NEEDS_ARGUMENT_HINT = ['note', 'teach', 'validate-idea', 'improve-process']
+const NEEDS_ARGUMENT_HINT = ['note', 'teach', 'validate-idea', 'improve-process', 'cv']
 
 /** Skills whose sanctioned write path is pre-approved, and nothing else. */
 const WRITE_NOTE_ALLOWED = ['note', 'teach']

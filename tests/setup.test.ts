@@ -42,6 +42,7 @@ const EXPECTED_DIRS = [
   'diary',
   'projects',
   'ideas',
+  'jobs',
   'profile',
   path.join('profile', 'experience'),
 ]
@@ -128,6 +129,19 @@ describe('setup script', () => {
     const config = await fs.readFile(path.join(vaultDir, 'config.yaml'), 'utf8')
     expect(config).toContain('- goals')
     expect(config).not.toContain('- investments')
+  })
+
+  it('brings a module’s dependencies along, unasked', async () => {
+    // The CV skill may use no facts but the ones in profile/, so Jobs without
+    // Profile would be a CV with nothing honest to say.
+    expect(runSetup(vaultDir, 'jobs').code).toBe(0)
+
+    for (const rel of ['jobs/cv-template.md', 'jobs/applications.yaml', 'user.md', 'profile']) {
+      expect(await fs.stat(path.join(vaultDir, rel)).then(() => true), rel).toBe(true)
+    }
+    const skills = await fs.readdir(path.join(vaultDir, '.claude', 'skills'))
+    expect(skills.sort()).toEqual(['cv', 'profile'])
+    expect(await fs.readFile(path.join(vaultDir, 'config.yaml'), 'utf8')).toContain('- profile')
   })
 
   it('rejects an unknown module id rather than silently skipping it', () => {

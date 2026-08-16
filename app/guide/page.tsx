@@ -244,6 +244,27 @@ const STEPS: Record<GuideStepKey, Step> = {
       </>
     ),
   },
+  hasApplication: {
+    title: "Save a job and tailor your CV",
+    what: (
+      <>
+        Each application is a folder under <K>vault/jobs/</K>: the job
+        description, a <K>fit.md</K> gap analysis (what you already have, cited
+        to your own evidence — and what you don&apos;t), and a CV tailored to
+        it. The missing requirements are what <K>/goals</K> reads to propose
+        goals worth having, so a saved job turns into a plan.
+      </>
+    ),
+    how: (
+      <>
+        Run <K>/cv</K> in Claude Code and paste the job description. It fills{" "}
+        <K>jobs/cv-template.md</K> — your format, editable by hand — using only
+        facts already in your profile. Then <K>npm run cv:pdf</K>{" "}
+        <K>jobs/&lt;folder&gt;</K> prints the PDF through a browser you already
+        have. The <TabLink href="/jobs">Jobs</TabLink> tab tracks the pipeline.
+      </>
+    ),
+  },
 }
 
 export default async function GuidePage() {

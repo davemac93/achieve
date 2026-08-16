@@ -111,6 +111,23 @@ describe('vault I/O', () => {
     expect(git(dir, ['log', '-1', '--format=%s']).trim()).toBe('writer: delete')
   })
 
+  it('separates files from subdirectories when listing', async () => {
+    // Stores whose records are folders (jobs/<company>-<role>/) need the second
+    // half of this: `list` must not report them, and `listDirs` must not report
+    // loose files like the pipeline index sitting beside them.
+    await vault.write('jobs/applications.yaml', 'applications: []\n', {
+      message: 'dashboard: init pipeline',
+    })
+    await vault.write('jobs/acme-platform-engineer/jd.md', '# JD\n', {
+      message: '/cv: save job description',
+    })
+
+    expect(await vault.list('jobs')).toEqual(['applications.yaml'])
+    expect(await vault.listDirs('jobs')).toEqual(['acme-platform-engineer'])
+    // A directory that does not exist is empty, not an error.
+    expect(await vault.listDirs('learn')).toEqual([])
+  })
+
   it('refuses paths that escape the vault', () => {
     expect(() => vault.resolve('../escape')).toThrow(/escapes the vault/)
     expect(() => vault.resolve('/etc/passwd')).toThrow(/escapes the vault/)

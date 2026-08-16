@@ -22,6 +22,8 @@ import { setStepDone } from "@/lib/dashboard/goals"
 import { saveDiaryEntry } from "@/lib/dashboard/diary"
 import { saveProfile } from "@/lib/dashboard/profile"
 import { appendEvidence, type EvidenceInput } from "@/lib/dashboard/evidence"
+import { setApplicationStatus } from "@/lib/dashboard/jobs"
+import { isApplicationStatus } from "@/lib/dashboard/jobs-content"
 
 export async function addTaskAction(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "")
@@ -139,4 +141,22 @@ export async function saveProfileAction(formData: FormData): Promise<void> {
 export async function recordEvidenceAction(input: EvidenceInput): Promise<void> {
   await appendEvidence(input)
   revalidatePath("/profile")
+}
+
+/**
+ * Move an application along the pipeline (`saved → applied → interview → offer`,
+ * or `rejected`), stamping today's date on the stage it reaches.
+ *
+ * The dashboard's only write into `jobs/`: the documents in the folder belong
+ * to the `/cv` skill, `applications.yaml` belongs here. An unknown status is
+ * ignored rather than written, like an empty task title.
+ */
+export async function setApplicationStatusAction(
+  slug: string,
+  status: string,
+): Promise<void> {
+  if (!isApplicationStatus(status)) return
+  await setApplicationStatus(slug, status)
+  revalidatePath("/jobs")
+  revalidatePath(`/jobs/${slug}`)
 }

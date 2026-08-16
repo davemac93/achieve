@@ -41,6 +41,9 @@ A read-mostly window over your vault, with the simple human write actions built 
 - **Notes** / **Projects** — surfaced from the vault's `notes/` and `projects/` directories.
 - **Profile** — your skills, experience and recent evidence, plus the `user.md` summary Claude
   loads at the start of every session.
+- **Jobs** — the application pipeline (`saved → applied → interview → offer | rejected`, with the
+  date of each stage), the gap analysis behind each saved job, and a print view of the CV you
+  tailored for it.
 
 Every write goes through a server action into the vault I/O layer — the browser never touches disk,
 and each change is one atomic write plus one labeled git commit.
@@ -60,6 +63,12 @@ and each change is one atomic write plus one labeled git commit.
   the vault I/O path as one labeled commit.
 - **`/teach`** — runs an active-recall learning session grounded in your `learning` notes and
   `user.md`, then captures what stuck as a new `learning` note (via the `/note` write path).
+- **`/cv`** — saves a job description under `jobs/<company>-<role>/`, writes a gap analysis citing
+  your own profile evidence for what you already have (and naming what you don't), and fills
+  **your** CV template (`jobs/cv-template.md`) for that role. It may use only facts already in
+  `profile/`: it re-orders, re-weights and re-words real experience, and never invents — a CV is a
+  document you sign. The missing requirements are what `/goals` reads to propose goals worth
+  having.
 
 Skills are approve-gated, never write outside the files they own, and never read your diary or
 `type: private` notes. They ship in `template/.claude/skills/` and are copied into each vault by
@@ -69,6 +78,10 @@ Skills are approve-gated, never write outside the files they own, and never read
 
 - `npm run rotate` — advance the quote-of-the-day pointer (run on a daily schedule or by hand).
 - `npm run migrate-profile` — parse an older hand-written `user.md` into the `profile/` stores.
+- `npm run cv:pdf jobs/<company>-<role>` — print an approved `cv.md` to `cv.pdf` using a browser you
+  already have (Chrome, Edge, Brave or Chromium — no 300 MB dependency). With none installed it says
+  so and points you at the dashboard's print view, which produces the same document. The PDF is
+  gitignored; `cv.md` is the version that stays in your history.
 - `npm run migrate-goals` — move a vault off the old `3yr` horizon and typed `progress` percentages
   (preview by default; `-- --write` after you approve).
   Prints a preview and writes nothing until you pass `--write`; never overwrites existing content.
@@ -94,6 +107,9 @@ vault/
   quotes.yaml        # quotes + rotation pointer
   notes/             # markdown notes
   projects/          # project notes
+  jobs/              # one folder per application: jd.md, fit.md, cv.md (/cv-owned)
+    applications.yaml #  the pipeline and its dates (dashboard-owned)
+    cv-template.md   #   your CV's sections and style — you own this file
   diary/             # dated entries — human-only, never read by AI
 ```
 

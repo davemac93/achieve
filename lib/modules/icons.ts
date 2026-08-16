@@ -1,5 +1,6 @@
 import {
   BookText,
+  Briefcase,
   Compass,
   FolderKanban,
   LayoutDashboard,
@@ -34,4 +35,5 @@ export const MODULE_ICONS: Record<ModuleIconName, LucideIcon> = {
   ListTodo,
   Quote,
   Lightbulb,
+  Briefcase,
 }

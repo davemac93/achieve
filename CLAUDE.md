@@ -29,7 +29,7 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
   ([app/actions.ts](app/actions.ts)) that calls the vault layer server-side.
   Read-side data access lives in [lib/dashboard/](lib/dashboard) and is marked
   `server-only`.
-- **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, Investments,
+- **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, Investments, Jobs,
   Guide (an onboarding checklist with checkmarks derived read-only from the
   vault — [lib/dashboard/guide.ts](lib/dashboard/guide.ts)), with the user
   avatar pinned at the bottom
@@ -68,8 +68,8 @@ six places.
 ## Write ownership (one primary writer per file)
 
 Dashboard owns `tasks.yaml`, `goal-status.yaml`, `investments.yaml` (holdings
-at cost basis, in PLN; agents read only), quote adds, diary, `user.md`, and
-`profile/evidence.yaml`.
+at cost basis, in PLN; agents read only), `jobs/applications.yaml`, quote adds,
+diary, `user.md`, and `profile/evidence.yaml`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
 pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml` (see below); the `/profile`
 skill owns the profile database (see below) and refreshes `user.md`
@@ -87,7 +87,10 @@ owns dated, cited, scored reports under `investments/research/` — an
 orchestrator fans out parallel per-dimension research subagents (which never
 see vault content) and judges strategy fit itself; verdicts are fit-based
 (`fits-strategy | mixed | doesn't-fit | avoid`), never buy/sell calls, and the
-skill refuses to run without `investments/strategy.md`. Skills ship in
+skill refuses to run without `investments/strategy.md`. The `/cv` skill owns the
+three documents inside each `jobs/<company>-<role>/` folder (`jd.md`, `fit.md`,
+`cv.md`) and nothing else — `jobs/applications.yaml` is the dashboard's and
+`jobs/cv-template.md` is the user's (see below). Skills ship in
 `template/.claude/skills/` and are scaffolded into each vault by `npm run
 setup` — which also writes `config.yaml` (the enabled module list) once, after
 which the user owns it. Agents are read-only elsewhere.
@@ -163,6 +166,49 @@ file builders live in
 [lib/dashboard/profile-content.ts](lib/dashboard/profile-content.ts), which —
 like `note-content.ts` — is framework-free so the script, the server and the
 tests can share it.
+
+## Jobs — one folder per application, and a CV nobody has to defend
+
+`jobs/<company>-<role>/` is the record; `jobs/applications.yaml` only tracks
+what happened to it. A folder with no row still shows in the pipeline, as
+`saved`, so a skill-written application appears before the user touches it.
+
+| Store | Holds | Writer |
+|---|---|---|
+| `jobs/<slug>/jd.md` | the job description as pasted, plus `company`/`role`/`source` frontmatter | `/cv` |
+| `jobs/<slug>/fit.md` | gap analysis: `## Requirements met` (each cited) vs `## Requirements missing` | `/cv` |
+| `jobs/<slug>/cv.md` | the tailored CV | `/cv` |
+| `jobs/<slug>/cv.pdf` | derived, **gitignored**, written by `npm run cv:pdf` | the script |
+| `jobs/cv-template.md` | the CV's sections, order and wording style | **the user** |
+| `jobs/applications.yaml` | `saved → applied → interview → offer \| rejected`, with the date of each stage | **dashboard** |
+
+- **`fit.md` is the hinge.** Its missing requirements are what the `/goals`
+  discovery phase reads to propose goals that close real gaps, so the two
+  headings are a contract, not a layout choice:
+  [parseFit](lib/dashboard/jobs-content.ts) parses exactly the shape the skill
+  is instructed to write, and `tests/jobs.test.ts` parses the example out of
+  `SKILL.md` itself so the two halves cannot drift apart.
+- **The CV skill has no facts of its own.** It may use only what is already in
+  `profile/` and `profile/evidence.yaml`; it re-orders, re-weights, re-words and
+  omits, and it never adds. A requirement the profile cannot back belongs in
+  `fit.md` under missing, never in `cv.md` — a CV is a document the user signs.
+  `tests/cv.test.ts` pins the rule, the closed source list, and the
+  name-the-file-or-delete-the-line check.
+- **Format is the user's, not the skill's.** `jobs/cv-template.md` defines the
+  sections (Personal summary → Education → Professional experience → Technical
+  projects → Core skills); the skill fills it. Changing the format never means
+  changing skill code, and a second template is just a second file.
+- **Markdown → approve → PDF.** `npm run cv:pdf jobs/<slug>` renders the
+  approved markdown and prints it through an installed Chrome/Edge/Brave/
+  Chromium ([scripts/cv-pdf.ts](scripts/cv-pdf.ts), detection in
+  [lib/dashboard/cv-pdf.ts](lib/dashboard/cv-pdf.ts)). **No npm dependency** —
+  Puppeteer's ~300 MB Chromium was rejected to keep `npx create-achieve` lean.
+  A browser named in `ACHIEVE_CHROME`/`CHROME_PATH` is the whole candidate list,
+  so a wrong path fails loudly instead of silently using another browser. With
+  none installed, the script says so and points at `/jobs/<slug>/cv`, the
+  dashboard's print view — which shares the renderer and stylesheet
+  ([lib/dashboard/cv-render.ts](lib/dashboard/cv-render.ts)), so it is the same
+  document rather than a lookalike.
 
 `vault/.cache/prices.json` is derived, not vault content: the
 dashboard's prices layer ([lib/dashboard/prices.ts](lib/dashboard/prices.ts))

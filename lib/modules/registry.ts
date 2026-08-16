@@ -27,6 +27,7 @@ export type ModuleId =
   | "notes"
   | "projects"
   | "investments"
+  | "jobs"
   | "ideas"
   | "guide"
 
@@ -45,6 +46,7 @@ export type GuideStepKey =
   | "hasHoldings"
   | "hasStrategy"
   | "hasResearch"
+  | "hasApplication"
 
 /** Names of the lucide icons modules may use — bound to components in
  * [icons.ts](./icons.ts), which the type keeps exhaustive in both directions. */
@@ -60,6 +62,7 @@ export type ModuleIconName =
   | "ListTodo"
   | "Quote"
   | "Lightbulb"
+  | "Briefcase"
 
 export interface ModuleDefinition {
   id: ModuleId
@@ -207,6 +210,22 @@ export const MODULES: ModuleDefinition[] = [
     dependsOn: [],
   },
   {
+    id: "jobs",
+    label: "Jobs",
+    icon: "Briefcase",
+    route: "/jobs",
+    sidebarOrder: 6,
+    // One folder per application (jd/fit/cv, /cv-owned) plus the pipeline index
+    // and the user's CV template. `cv.pdf` is derived and gitignored.
+    vaultPaths: ["jobs/"],
+    skills: ["cv"],
+    seedFiles: ["jobs"],
+    guideSteps: ["hasApplication"],
+    // The CV skill may use no facts but the ones in `profile/` and its evidence
+    // log, so Jobs without Profile would be a CV with nothing honest to say.
+    dependsOn: ["profile"],
+  },
+  {
     id: "ideas",
     label: "Ideas",
     icon: "Lightbulb",
@@ -223,7 +242,7 @@ export const MODULES: ModuleDefinition[] = [
     label: "Guide",
     icon: "Compass",
     route: "/guide",
-    sidebarOrder: 6,
+    sidebarOrder: 7,
     vaultPaths: [], // every checkmark is derived from other modules' stores
     skills: [],
     seedFiles: [],

@@ -52,6 +52,8 @@ export interface Vault {
   exists(relPath: string): Promise<boolean>
   /** List file names (not subdirectories) directly inside a vault directory. */
   list(relPath: string): Promise<string[]>
+  /** List subdirectory names directly inside a vault directory (no files). */
+  listDirs(relPath: string): Promise<string[]>
   read(relPath: string): Promise<string>
   readYaml<T = unknown>(relPath: string): Promise<T>
   /** Atomically write text, then commit exactly one labeled mutation. */
@@ -98,6 +100,21 @@ export function openVault(root: string = defaultVaultRoot()): Vault {
     }
   }
 
+  /** Subdirectories, for stores whose records are folders (`jobs/<slug>/`). */
+  async function listDirs(relPath: string): Promise<string[]> {
+    const dir = resolve(relPath)
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true })
+      return entries
+        .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+        .map((e) => e.name)
+        .sort()
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') return []
+      throw err
+    }
+  }
+
   async function read(relPath: string): Promise<string> {
     return fs.readFile(resolve(relPath), 'utf8')
   }
@@ -124,7 +141,18 @@ export function openVault(root: string = defaultVaultRoot()): Vault {
     commitPath(abs, relPath, opts.message)
   }
 
-  return { root: abs, resolve, exists, list, read, readYaml, write, writeYaml, remove }
+  return {
+    root: abs,
+    resolve,
+    exists,
+    list,
+    listDirs,
+    read,
+    readYaml,
+    write,
+    writeYaml,
+    remove,
+  }
 }
 
 /**
