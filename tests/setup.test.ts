@@ -8,10 +8,17 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const setupScript = path.join(repoRoot, 'scripts', 'setup.mjs')
 
-function runSetup(vaultDir: string): { code: number; stderr: string } {
+function runSetup(
+  vaultDir: string,
+  modules?: string,
+): { code: number; stderr: string } {
   try {
     execFileSync('node', [setupScript], {
-      env: { ...process.env, ACHIEVE_VAULT_DIR: vaultDir },
+      env: {
+        ...process.env,
+        ACHIEVE_VAULT_DIR: vaultDir,
+        ...(modules === undefined ? {} : { ACHIEVE_MODULES: modules }),
+      },
       encoding: 'utf8',
     })
     return { code: 0, stderr: '' }
@@ -82,6 +89,45 @@ describe('setup script', () => {
     runSetup(vaultDir)
     expect(await fs.readFile(path.join(vaultDir, 'tasks.yaml'), 'utf8')).toContain('tasks: []')
     expect(await fs.readFile(path.join(vaultDir, 'goals.yaml'), 'utf8')).toContain('goals: []')
+  })
+
+  it('records the enabled modules in config.yaml', async () => {
+    runSetup(vaultDir)
+    const config = await fs.readFile(path.join(vaultDir, 'config.yaml'), 'utf8')
+    // Everything, when the install picks nothing in particular.
+    expect(config).toContain('- notes')
+    expect(config).toContain('- investments')
+  })
+
+  it('scaffolds only the enabled modules — files, skills and config alike', async () => {
+    // reviews pulls goals in behind it (a review walks the goal tree).
+    expect(runSetup(vaultDir, 'notes,reviews').code).toBe(0)
+
+    for (const rel of ['notes', 'reviews/weekly', 'goals.yaml', 'CLAUDE.md']) {
+      expect(await fs.stat(path.join(vaultDir, rel)).then(() => true)).toBe(true)
+    }
+    for (const rel of ['investments.yaml', 'user.md', 'diary']) {
+      expect(
+        await fs.stat(path.join(vaultDir, rel)).then(
+          () => true,
+          () => false,
+        ),
+        rel,
+      ).toBe(false)
+    }
+
+    const skills = await fs.readdir(path.join(vaultDir, '.claude', 'skills'))
+    expect(skills.sort()).toEqual(['goals', 'note', 'review', 'teach'])
+
+    const config = await fs.readFile(path.join(vaultDir, 'config.yaml'), 'utf8')
+    expect(config).toContain('- goals')
+    expect(config).not.toContain('- investments')
+  })
+
+  it('rejects an unknown module id rather than silently skipping it', () => {
+    const result = runSetup(vaultDir, 'notes,fitness')
+    expect(result.code).toBe(1)
+    expect(result.stderr).toMatch(/Unknown module id/)
   })
 
   it('refuses to overwrite an existing non-empty vault', async () => {

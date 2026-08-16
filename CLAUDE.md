@@ -33,7 +33,37 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
   Guide (an onboarding checklist with checkmarks derived read-only from the
   vault — [lib/dashboard/guide.ts](lib/dashboard/guide.ts)), with the user
   avatar pinned at the bottom
-  ([components/app-sidebar.tsx](components/app-sidebar.tsx)).
+  ([components/app-sidebar.tsx](components/app-sidebar.tsx)). Membership and
+  order come from the module registry, not from a list in the component.
+
+## Module registry (single source of truth)
+
+[lib/modules/registry.ts](lib/modules/registry.ts) declares every module once —
+`id`, `label`, `icon`, `route`, `sidebarOrder`, `vaultPaths`, `skills`,
+`seedFiles`, `guideSteps`, `dependsOn`. The sidebar, the header titles, the
+Guide checklist and what `npm run setup` scaffolds are all derived from
+**registry × enabled modules**; none of them keeps its own list. Adding a
+module means adding a registry entry (plus its page and stores), not editing
+six places.
+
+- **Enabled set:** `vault/config.yaml` lists the enabled ids and is read
+  server-side by [lib/dashboard/config.ts](lib/dashboard/config.ts). A missing
+  file means *all enabled*, so vaults scaffolded before v2 behave exactly as
+  before; an explicit empty list means none.
+- **`dependsOn` is closed over transitively** — a module is never enabled
+  without the modules it reads (enabling `reviews` enables `goals`).
+- **Install subset:** `ACHIEVE_MODULES=notes,goals npm run setup` scaffolds
+  only those modules' seed files and skills, plus the base files, and records
+  the resolved list in `config.yaml`. Setup *rejects* an unknown id (a typo at
+  install time is worth stopping for); the dashboard reader *ignores* one (a
+  stale config must never break a running vault).
+- The registry is plain, import-free data so plain node
+  (`scripts/setup.mjs`), the server and the browser bundle can all read it;
+  icon names bind to lucide components in
+  [lib/modules/icons.ts](lib/modules/icons.ts).
+- [tests/modules.test.ts](tests/modules.test.ts) asserts completeness **in both
+  directions** — no shipped skill, template file, route or Guide step is
+  undeclared, and no stale declaration survives what it described.
 
 ## Write ownership (one primary writer per file)
 
@@ -58,7 +88,8 @@ see vault content) and judges strategy fit itself; verdicts are fit-based
 (`fits-strategy | mixed | doesn't-fit | avoid`), never buy/sell calls, and the
 skill refuses to run without `investments/strategy.md`. Skills ship in
 `template/.claude/skills/` and are scaffolded into each vault by `npm run
-setup`. Agents are read-only elsewhere.
+setup` — which also writes `config.yaml` (the enabled module list) once, after
+which the user owns it. Agents are read-only elsewhere.
 
 `vault/.search-index/` is a derived cache, not owned vault content: `npm run
 index` ([scripts/build-search-index.ts](scripts/build-search-index.ts))

@@ -100,6 +100,11 @@ describe('privacy wall: nothing else may read the diary', () => {
 
   const SANCTIONED = path.join('lib', 'dashboard', 'diary.ts')
 
+  // The module registry *names* `diary/` because a module must declare what it
+  // owns. It never opens it — the test below pins that: the registry is plain
+  // data with no imports, so a path there cannot become a read.
+  const DECLARES_ONLY = path.join('lib', 'modules', 'registry.ts')
+
   async function walk(dir: string): Promise<string[]> {
     const out: string[] = []
     for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
@@ -120,10 +125,16 @@ describe('privacy wall: nothing else may read the diary', () => {
     const offenders: string[] = []
     for (const file of files) {
       const rel = path.relative(repoRoot, file)
-      if (rel === SANCTIONED) continue
+      if (rel === SANCTIONED || rel === DECLARES_ONLY) continue
       if (DIARY_PATH.test(await fs.readFile(file, 'utf8'))) offenders.push(rel)
     }
     expect(offenders).toEqual([])
+  })
+
+  it('the module registry only declares the diary path — it reads nothing', async () => {
+    const src = await fs.readFile(path.join(repoRoot, DECLARES_ONLY), 'utf8')
+    expect(DIARY_PATH.test(src)).toBe(true) // it does name the path…
+    expect(/^import\s/m.test(src)).toBe(false) // …with no way to open it
   })
 
   it('the auto-loaded vault context imports user.md but never the diary', async () => {

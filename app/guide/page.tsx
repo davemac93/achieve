@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { CheckCircle2, Circle } from "lucide-react"
 
-import { getGuideProgress, type GuideProgress } from "@/lib/dashboard/guide"
+import { getGuideProgress } from "@/lib/dashboard/guide"
+import { getEnabledModuleIds } from "@/lib/dashboard/config"
+import { guideStepsFor, type GuideStepKey } from "@/lib/modules/registry"
 import {
   Card,
   CardContent,
@@ -11,7 +13,6 @@ import {
 } from "@/components/ui/card"
 
 interface Step {
-  key: keyof GuideProgress
   title: string
   /** What this step is and why it matters. */
   what: React.ReactNode
@@ -33,9 +34,10 @@ function TabLink({ href, children }: { href: string; children: React.ReactNode }
   )
 }
 
-const steps: Step[] = [
-  {
-    key: "vaultReady",
+/** The prose for every step the registry can ask for. Typed as an exhaustive
+ * record, so a new module's step cannot ship without its instructions. */
+const STEPS: Record<GuideStepKey, Step> = {
+  vaultReady: {
     title: "Scaffold your vault",
     what: (
       <>
@@ -52,8 +54,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "profileFilled",
+  profileFilled: {
     title: "Tell Claude who you are",
     what: (
       <>
@@ -71,8 +72,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasGoals",
+  hasGoals: {
     title: "Decompose your goals",
     what: (
       <>
@@ -90,8 +90,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasTasks",
+  hasTasks: {
     title: "Track your first task",
     what: (
       <>
@@ -107,8 +106,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasQuote",
+  hasQuote: {
     title: "Start your quote rotation",
     what: (
       <>
@@ -123,8 +121,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasDiaryEntry",
+  hasDiaryEntry: {
     title: "Write a diary entry",
     what: (
       <>
@@ -135,8 +132,7 @@ const steps: Step[] = [
     ),
     how: <>Open the Diary tab and write today's entry. That's it.</>,
   },
-  {
-    key: "hasNotes",
+  hasNotes: {
     title: "Capture a note",
     what: (
       <>
@@ -154,8 +150,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasProjects",
+  hasProjects: {
     title: "Start a project",
     what: (
       <>
@@ -171,8 +166,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasHoldings",
+  hasHoldings: {
     title: "Add your investments",
     what: (
       <>
@@ -189,8 +183,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasStrategy",
+  hasStrategy: {
     title: "Define your investment strategy",
     what: (
       <>
@@ -207,8 +200,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasResearch",
+  hasResearch: {
     title: "Research a candidate",
     what: (
       <>
@@ -227,8 +219,7 @@ const steps: Step[] = [
       </>
     ),
   },
-  {
-    key: "hasReview",
+  hasReview: {
     title: "Run your weekly review",
     what: (
       <>
@@ -244,11 +235,16 @@ const steps: Step[] = [
       </>
     ),
   },
-]
+}
 
 export default async function GuidePage() {
-  const progress = await getGuideProgress()
-  const done = steps.filter((s) => progress[s.key]).length
+  const [progress, enabledModules] = await Promise.all([
+    getGuideProgress(),
+    getEnabledModuleIds(),
+  ])
+  // Only the enabled modules' steps, in the registry's onboarding order.
+  const stepKeys = guideStepsFor(enabledModules)
+  const done = stepKeys.filter((key) => progress[key]).length
 
   return (
     <>
@@ -256,7 +252,7 @@ export default async function GuidePage() {
         <CardHeader>
           <CardTitle>Getting started</CardTitle>
           <CardDescription>
-            {done} of {steps.length} steps done. Checkmarks are read live from
+            {done} of {stepKeys.length} steps done. Checkmarks are read live from
             your vault — complete a step anywhere (here or in Claude Code) and
             it ticks off on its own. Work top to bottom; each step builds on
             the previous ones.
@@ -264,10 +260,11 @@ export default async function GuidePage() {
         </CardHeader>
         <CardContent>
           <ol className="flex flex-col gap-5">
-            {steps.map((step, i) => {
-              const isDone = progress[step.key]
+            {stepKeys.map((key, i) => {
+              const step = STEPS[key]
+              const isDone = progress[key]
               return (
-                <li key={step.key} className="flex gap-3">
+                <li key={key} className="flex gap-3">
                   {isDone ? (
                     <CheckCircle2
                       className="mt-0.5 size-5 shrink-0 text-emerald-600 dark:text-emerald-500"

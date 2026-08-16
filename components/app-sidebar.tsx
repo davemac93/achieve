@@ -3,17 +3,10 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  BookText,
-  Compass,
-  FolderKanban,
-  LayoutDashboard,
-  NotebookPen,
-  Sparkles,
-  Target,
-  TrendingUp,
-} from "lucide-react"
+import { Sparkles } from "lucide-react"
 
+import { MODULE_ICONS } from "@/lib/modules/icons"
+import { sidebarModules, type ModuleId } from "@/lib/modules/registry"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -27,18 +20,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const navItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Notes", url: "/notes", icon: NotebookPen },
-  { title: "Diary", url: "/diary", icon: BookText },
-  { title: "Goals", url: "/goals", icon: Target },
-  { title: "Projects", url: "/projects", icon: FolderKanban },
-  { title: "Investments", url: "/investments", icon: TrendingUp },
-  { title: "Guide", url: "/guide", icon: Compass },
-]
-
-export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+/** Nav entries come from the module registry, filtered by what this vault has
+ * enabled (resolved server-side in the layout — the browser never reads disk). */
+export function AppSidebar({
+  enabledModules,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { enabledModules: ModuleId[] }) {
   const pathname = usePathname()
+  const navItems = sidebarModules(enabledModules)
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -64,20 +53,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
+                const url = item.route
                 const isActive =
-                  item.url === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(item.url)
+                  url === "/" ? pathname === "/" : pathname.startsWith(url)
+                const Icon = MODULE_ICONS[item.icon]
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      tooltip={item.title}
+                      tooltip={item.label}
                     >
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
+                      <Link href={url}>
+                        <Icon />
+                        <span>{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

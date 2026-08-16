@@ -80,6 +80,7 @@ Skills are approve-gated, never write outside the one file they own, and never r
 ```
 vault/
   CLAUDE.md          # auto-loaded by Claude Code; imports user.md
+  config.yaml        # which modules this vault runs (delete it to enable all)
   user.md            # your profile
   tasks.yaml         # to-do items (dashboard-owned)
   goals.yaml         # goal tree definitions (/goals-owned)
@@ -94,6 +95,12 @@ vault/
 ```
 
 Each file has exactly one primary writer, so no two writers ever contend on the same file.
+
+Which parts land there is a choice: every feature is a **module** declared once in
+`lib/modules/registry.ts` (sidebar entry, vault paths, skills, seed files, guide steps,
+dependencies), and `vault/config.yaml` lists the ones this vault runs. Install a subset with
+`ACHIEVE_MODULES=notes,goals npm run setup`; modules a module depends on come along
+automatically. No `config.yaml` means everything is enabled.
 
 ### Note types
 
