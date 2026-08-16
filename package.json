@@ -11,6 +11,7 @@
     "note": "node scripts/write-note.ts",
     "migrate-profile": "node scripts/migrate-profile.ts",
     "migrate-goals": "node scripts/migrate-goals.ts",
+    "cv:pdf": "node scripts/cv-pdf.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

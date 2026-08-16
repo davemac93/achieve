@@ -68,6 +68,11 @@ describe('guide progress derives from what exists in the vault', () => {
     await put(dir, 'investments/research/2026-07-13-vwce.md', '# VWCE\n')
     await put(
       dir,
+      'jobs/acme-platform-engineer/jd.md',
+      '---\ncompany: Acme\nrole: Platform Engineer\n---\n\nKubernetes, please.\n',
+    )
+    await put(
+      dir,
       'profile/skills.yaml',
       'skills:\n  - skill: Kubernetes\n    level: working\n    evidenceCount: 6\n',
     )
@@ -86,6 +91,7 @@ describe('guide progress derives from what exists in the vault', () => {
       hasHoldings: true,
       hasStrategy: true,
       hasResearch: true,
+      hasApplication: true,
     })
   })
 })

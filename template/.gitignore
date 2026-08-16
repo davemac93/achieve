@@ -2,6 +2,11 @@
 # prices layer (lib/dashboard/prices.ts), not vault content.
 /.cache/
 
+# Rendered CVs — derived artifacts written by `npm run cv:pdf` from the cv.md
+# beside them. Binary blobs bloat the vault's audit trail, and the markdown is
+# the version worth diffing; the PDF is one command away whenever it's needed.
+/jobs/*/cv.pdf
+
 # Obsidian's per-session workspace state (open panes, last cursor position,
 # installed community plugin binaries) — noisy and machine-specific, unlike
 # the meaningful settings in app.json/core-plugins.json which stay tracked.

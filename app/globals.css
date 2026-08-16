@@ -118,3 +118,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/**
+ * The CV print view (/jobs/<slug>/cv) is a document, not a dashboard page: when
+ * a `.cv-document` is on the page, printing drops the app chrome around it and
+ * lets the CV stylesheet own the sheet. That is the fallback `npm run cv:pdf`
+ * points at when no browser is installed — same markup, same stylesheet
+ * (lib/dashboard/cv-render.ts), so the printed page matches the headless PDF.
+ */
+@media print {
+  body:has(.cv-document) [data-slot="sidebar"],
+  body:has(.cv-document) [data-slot="sidebar-container"],
+  body:has(.cv-document) header {
+    display: none !important;
+  }
+  body:has(.cv-document) main {
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+}

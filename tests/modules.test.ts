@@ -125,11 +125,15 @@ describe('enabled modules resolve against the registry', () => {
     ])
   })
 
-  it('closes dependencies over transitively — none are declared today', () => {
-    // Reviews (→ goals) and Search (→ notes, projects) were the only modules
-    // with dependencies, and both are gone. The closure stays for the modules
-    // v2 adds; until then every id resolves to itself alone.
-    expect(MODULES.filter((m) => m.dependsOn.length > 0)).toEqual([])
+  it('closes dependencies over transitively', () => {
+    // Jobs is the only module with a dependency today, and it is a real one:
+    // the CV skill may use no facts but the ones in `profile/`, so a vault with
+    // Jobs and no Profile would be a CV with nothing honest to say.
+    expect(
+      MODULES.filter((m) => m.dependsOn.length > 0).map((m) => [m.id, m.dependsOn]),
+    ).toEqual([['jobs', ['profile']]])
+    // Registry order, with the dependency pulled in even though it wasn't asked for.
+    expect(resolveEnabledModules(['jobs'])).toEqual(['profile', 'jobs'])
     expect(resolveEnabledModules(['notes'])).toEqual(['notes'])
   })
 
@@ -178,6 +182,7 @@ describe('the dashboard chrome derives from registry × config', () => {
       ['Goals', '/goals'],
       ['Projects', '/projects'],
       ['Investments', '/investments'],
+      ['Jobs', '/jobs'],
       ['Guide', '/guide'],
     ])
   })
@@ -190,12 +195,13 @@ describe('the dashboard chrome derives from registry × config', () => {
       '/goals': 'Goals',
       '/projects': 'Projects',
       '/investments': 'Investments',
+      '/jobs': 'Jobs',
       '/guide': 'Guide',
       '/profile': 'Profile',
     })
   })
 
-  it('walks the same onboarding sequence as before, with everything enabled', () => {
+  it('walks the onboarding sequence in registry order, everything enabled', () => {
     expect(guideStepsFor(ALL)).toEqual([
       'vaultReady',
       'profileFilled',
@@ -209,6 +215,7 @@ describe('the dashboard chrome derives from registry × config', () => {
       'hasHoldings',
       'hasStrategy',
       'hasResearch',
+      'hasApplication',
     ])
   })
 
