@@ -59,16 +59,39 @@ const STEPS: Record<GuideStepKey, Step> = {
     what: (
       <>
         <K>vault/user.md</K> is loaded into every Claude Code session in the
-        vault — it is how every skill knows who you are, what you're working
-        toward, and how you like to be helped.
+        vault — a short summary of who you are, what you're working toward, and
+        how you like to be helped. Short on purpose: the detail lives in{" "}
+        <K>profile/</K>, read only when a skill needs it.
       </>
     ),
     how: (
       <>
         Edit it on the <TabLink href="/profile">Profile</TabLink> page (or by
         hand), replacing the placeholder lines. Later, <K>/profile</K> in
-        Claude Code can refresh it from your goals, projects, and notes —
-        always with your approval.
+        Claude Code can regenerate it from your profile database, goals,
+        projects and notes — always with your approval.
+      </>
+    ),
+  },
+  hasSkills: {
+    title: "Build your profile database",
+    what: (
+      <>
+        <K>profile/</K> is the context database behind the summary: one file per
+        role in <K>profile/experience/</K>, plus <K>skills.yaml</K>,{" "}
+        <K>education.yaml</K> and <K>preferences.yaml</K>. Ticking a
+        skill-tagged step appends to <K>profile/evidence.yaml</K>, and{" "}
+        <K>/profile</K> proposes level promotions from that trail — so a claimed
+        skill always has dated work behind it.
+      </>
+    ),
+    how: (
+      <>
+        Run <K>/profile</K> in Claude Code: it interviews you (or migrates what
+        your <K>user.md</K> already says — shown as a preview first, never
+        overwriting anything) and writes only after you approve. The{" "}
+        <TabLink href="/profile">Profile</TabLink> tab renders skills,
+        experience and recent evidence.
       </>
     ),
   },

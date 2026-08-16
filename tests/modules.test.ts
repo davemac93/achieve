@@ -199,6 +199,7 @@ describe('the dashboard chrome derives from registry × config', () => {
     expect(guideStepsFor(ALL)).toEqual([
       'vaultReady',
       'profileFilled',
+      'hasSkills',
       'hasGoals',
       'hasTasks',
       'hasQuote',

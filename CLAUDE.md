@@ -68,10 +68,12 @@ six places.
 ## Write ownership (one primary writer per file)
 
 Dashboard owns `tasks.yaml`, `goal-status.yaml`, `investments.yaml` (holdings
-at cost basis, in PLN; agents read only), quote adds, diary, `user.md`.
+at cost basis, in PLN; agents read only), quote adds, diary, `user.md`, and
+`profile/evidence.yaml`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
 pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml`; the `/profile`
-skill refreshes `user.md` (approve-gated, alongside the dashboard editor). The `/note` skill owns `notes/` — it writes each note
+skill owns the profile database (see below) and refreshes `user.md`
+(approve-gated, alongside the dashboard editor). The `/note` skill owns `notes/` — it writes each note
 through `scripts/write-note.ts` (the vault I/O path: atomic write + one labeled
 commit), never by hand; `/teach` creates new `learning` notes through that same
 `/note` write path (not a second writer). The `/validate-idea` and
@@ -89,6 +91,41 @@ skill refuses to run without `investments/strategy.md`. Skills ship in
 `template/.claude/skills/` and are scaffolded into each vault by `npm run
 setup` — which also writes `config.yaml` (the enabled module list) once, after
 which the user owns it. Agents are read-only elsewhere.
+
+## Profile context database
+
+`user.md` is a **short summary**, and only that: `template/CLAUDE.md` imports it
+into *every* session, so a trivial `/note` call must not pay for the user's
+whole history. The full picture lives in `profile/`, read on demand:
+
+| Store | Holds | Writer |
+|---|---|---|
+| `profile/experience/<slug>.md` | one role: frontmatter (`company`, `title`, `start`, `end`, `tech[]`) + narrative achievements | `/profile` |
+| `profile/skills.yaml` | `skill`, `level` (`basic → working → strong → expert`), `evidenceCount`, `lastUsed` | `/profile` |
+| `profile/education.yaml`, `profile/preferences.yaml` | schooling; work style, constraints, energy patterns | `/profile` |
+| `profile/evidence.yaml` | **append-only** log of completed, skill-tagged work | **dashboard** |
+| `user.md` | the auto-loaded summary, generated from the above | `/profile` + the dashboard editor |
+
+The evidence split is the point: ticking a step tagged with a skill appends a
+record (what, when, which skill, and the source it came from) through
+[lib/dashboard/evidence.ts](lib/dashboard/evidence.ts) — atomic write, one
+labeled commit, idempotent on `(source, skill)` so a re-tick never inflates a
+count. `/profile` *reads* that log and proposes level promotions in
+`skills.yaml`, approve-gated. One writer per file survives, and every claimed
+skill has a dated trail behind it. The tagging that produces evidence lands with
+the goals redesign (#77); until then `recordEvidenceAction` in
+[app/actions.ts](app/actions.ts) is the API waiting for it.
+
+Migration for vaults written before the database:
+[scripts/migrate-profile.ts](scripts/migrate-profile.ts) parses `user.md` into a
+proposal and, by default, **writes nothing** — `/profile` shows the preview,
+and only `--write` (after approval) lands it. It never overwrites an existing
+experience file or a store that already holds records, and never touches
+`user.md`; regenerating the summary is its own approved step. Parsing and the
+file builders live in
+[lib/dashboard/profile-content.ts](lib/dashboard/profile-content.ts), which —
+like `note-content.ts` — is framework-free so the script, the server and the
+tests can share it.
 
 `vault/.cache/prices.json` is derived, not vault content: the
 dashboard's prices layer ([lib/dashboard/prices.ts](lib/dashboard/prices.ts))

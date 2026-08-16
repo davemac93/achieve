@@ -66,11 +66,17 @@ describe('guide progress derives from what exists in the vault', () => {
     )
     await put(dir, 'investments/strategy.md', '# Strategy\n')
     await put(dir, 'investments/research/2026-07-13-vwce.md', '# VWCE\n')
+    await put(
+      dir,
+      'profile/skills.yaml',
+      'skills:\n  - skill: Kubernetes\n    level: working\n    evidenceCount: 6\n',
+    )
 
     const progress = await getGuideProgress()
     expect(progress).toEqual({
       vaultReady: false, // no user.md written in this case
       profileFilled: false,
+      hasSkills: true,
       hasGoals: true,
       hasTasks: true,
       hasQuote: true,
