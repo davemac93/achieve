@@ -12,6 +12,9 @@ npm run setup   # scaffolds vault/ from template/ on first run
 npm run dev     # localhost:3000
 ```
 
+(Users install with `npx create-achieve <dir>` instead — see the CLI section
+below. It ends up running exactly these three commands.)
+
 `npm run build` for a production build; `npm test` / `npm run typecheck` for checks.
 
 Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
@@ -39,12 +42,12 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
 ## Module registry (single source of truth)
 
 [lib/modules/registry.ts](lib/modules/registry.ts) declares every module once —
-`id`, `label`, `icon`, `route`, `sidebarOrder`, `vaultPaths`, `skills`,
-`seedFiles`, `guideSteps`, `dependsOn`. The sidebar, the header titles, the
-Guide checklist and what `npm run setup` scaffolds are all derived from
-**registry × enabled modules**; none of them keeps its own list. Adding a
-module means adding a registry entry (plus its page and stores), not editing
-six places.
+`id`, `label`, `description`, `icon`, `route`, `sidebarOrder`, `vaultPaths`,
+`skills`, `seedFiles`, `guideSteps`, `dependsOn`, `preset`. The sidebar, the
+header titles, the Guide checklist, what `npm run setup` scaffolds and the
+`create-achieve` picker are all derived from **registry × enabled modules**;
+none of them keeps its own list. Adding a module means adding a registry entry
+(plus its page and stores), not editing seven places.
 
 - **Enabled set:** `vault/config.yaml` lists the enabled ids and is read
   server-side by [lib/dashboard/config.ts](lib/dashboard/config.ts). A missing
@@ -61,9 +64,55 @@ six places.
   (`scripts/setup.mjs`), the server and the browser bundle can all read it;
   icon names bind to lucide components in
   [lib/modules/icons.ts](lib/modules/icons.ts).
+- **`preset`** is the installer's half of the declaration: `core` (installed
+  always — Home owns `/`, Guide is how a fresh vault explains itself),
+  `recommended` (pre-ticked), `optional` (offered, starts off).
+  `defaultModuleIds()`, `coreModuleIds()` and `pickableModules()` are the only
+  readers.
 - [tests/modules.test.ts](tests/modules.test.ts) asserts completeness **in both
   directions** — no shipped skill, template file, route or Guide step is
   undeclared, and no stale declaration survives what it described.
+
+## `npx create-achieve` — the install path
+
+[packages/create-achieve/](packages/create-achieve) is a separate, publishable
+package (`create-achieve`) with **no dependencies**: node's own `readline` for
+the prompt, `node:util` for the flags. It is *not* a code generator — it clones
+the repo, picks modules, and hands the scaffolding to
+[scripts/setup.mjs](scripts/setup.mjs) via `ACHIEVE_MODULES`, so there is one
+scaffolder and not two. What the user gets is a normal checkout that upgrades
+with `git pull` and stays toggleable through `vault/config.yaml`; a generated
+codebase would drift from the repo the moment either changed, and the repo *is*
+the product.
+
+- **The picker reads the clone's own registry**, imported at runtime from
+  `<dir>/lib/modules/registry.ts` (node strips the types, the same way
+  `scripts/setup.mjs` already imports it). It cannot offer a module that
+  version does not ship, or miss one it does — there is no list over here to
+  fall out of date. That is why the CLI clones *before* it asks.
+- **`dependsOn`, two ways.** A dependency the user never mentioned is
+  **added**, with a notice (`--modules jobs` installs Profile, exactly like
+  `npm run setup`). A dependency they explicitly declined in the picker
+  **drops** the module that needed it, with the reason — installing Jobs after
+  Profile was turned down would hand them a CV skill with no facts it may use,
+  and quietly overriding the answer they just gave is worse than not installing
+  the module. Both live in `resolveSelection`
+  ([picker.mjs](packages/create-achieve/picker.mjs)), which closes the graph by
+  calling the registry's own `resolveEnabledModules`.
+- **Flags for CI:** `--modules a,b,c` (taken literally, plus dependencies —
+  same contract as `ACHIEVE_MODULES`, so `core` is *not* force-added), `--all`,
+  `--yes` (the `preset` defaults, unattended), plus `--from <url|path>` for a
+  fork or a local checkout and `--no-install` to skip `npm install`. Answers
+  can also be piped: the asker queues stdin lines rather than reading through
+  `rl.question`, which would keep the first and drop the rest.
+- **Lean by construction.** Zero runtime dependencies here, and the project it
+  installs pulls nothing native or headless-browser-shaped (the same rule that
+  kept Puppeteer out of `npm run cv:pdf`).
+- [tests/create-achieve.test.ts](tests/create-achieve.test.ts) covers the
+  resolution rules directly and then installs real projects from a local clone
+  of this repo (`--from`) — flagged and piped-interactive alike — asserting
+  that `config.yaml`, the seed files and the scaffolded skills are exactly the
+  modules chosen and nothing else.
 
 ## Write ownership (one primary writer per file)
 
