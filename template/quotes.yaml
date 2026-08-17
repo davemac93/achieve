@@ -1,5 +1,8 @@
-# Quotes — writers: daily rotation script (current pointer) + dashboard (human add).
-# Agents read only.
+# Quotes — writers: daily rotation script (current pointer) + dashboard (human add)
+# + `npm run quotes:import <file>` (appends a CSV/JSON/YAML database you curate).
+# Agents read only. Quotes are never AI-generated — a made-up line under a real
+# name is a fake quote.
+# Each entry: `text`, optional `author`, `source`, `tags`.
 # `current` is the index into `quotes` shown today; the rotation script advances it.
 quotes: []
 current: null

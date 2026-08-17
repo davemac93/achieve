@@ -163,7 +163,7 @@ export const MODULES: ModuleDefinition[] = [
     route: null, // the quote-of-the-day card on the home page
     sidebarOrder: null,
     vaultPaths: ["quotes.yaml"],
-    skills: [], // rotation is a script (`npm run rotate`), not a skill
+    skills: [], // rotation and import are scripts (`npm run rotate`, `quotes:import`), not skills
     seedFiles: ["quotes.yaml"],
     guideSteps: ["hasQuote"],
     dependsOn: [],

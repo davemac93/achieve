@@ -8,6 +8,7 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "rotate": "node scripts/rotate-quote.ts",
+    "quotes:import": "node scripts/import-quotes.ts",
     "note": "node scripts/write-note.ts",
     "learn": "node scripts/write-learn.ts",
     "fitness": "node scripts/write-fitness.ts",

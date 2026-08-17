@@ -89,6 +89,12 @@ Skills are approve-gated, never write outside the files they own, and never read
 ### Scripts
 
 - `npm run rotate` — advance the quote-of-the-day pointer (run on a daily schedule or by hand).
+- `npm run quotes:import <file>` — load a quote database **you** curate into the pool. CSV, JSON or
+  YAML, with `text` and `author` fields plus optional `source` and `tags`; CSV headers may be in any
+  order (and a `quote` column counts as `text`). Nothing is fetched and nothing is generated — a
+  machine-written line attributed to a real person is a fake quote. Safe to re-run: entries already
+  in the pool are skipped, quotes you added in the dashboard are never touched, and a file with a
+  bad row is rejected whole, leaving the pool as it was.
 - `npm run migrate-profile` — parse an older hand-written `user.md` into the `profile/` stores.
 - `npm run cv:pdf jobs/<company>-<role>` — print an approved `cv.md` to `cv.pdf` using a browser you
   already have (Chrome, Edge, Brave or Chromium — no 300 MB dependency). With none installed it says

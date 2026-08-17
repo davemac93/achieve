@@ -80,10 +80,14 @@ export interface GoalStatus {
   done: boolean
 }
 
-/** A quote in `quotes.yaml`. */
+/** A quote in `quotes.yaml`. Written by the dashboard's add form and the importer. */
 export interface Quote {
   text: string
   author?: string
+  /** Where the line is from (book, talk, letter) — kept when the import supplies it. */
+  source?: string
+  /** Freeform tags from the imported database. */
+  tags?: string[]
 }
 
 /** A project, from a markdown file in `projects/`. Human is the primary writer. */
