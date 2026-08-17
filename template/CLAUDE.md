@@ -77,6 +77,17 @@ never logs on your behalf.
   permission-denied. Never look for photos, never list that folder, never open
   one. If you want feedback on a photo, attach it in the conversation yourself.
 
+## Quotes
+
+`quotes.yaml` is a pool **you** curate: quotes you add in the dashboard, plus
+whatever `npm run quotes:import <file>` loads from a CSV/JSON/YAML database of
+your own. `npm run rotate` picks the day's line from that pool, offline.
+
+- **Never write a quote into the vault, and never invent one.** A generated line
+  under a real person's name is a fake quote, however plausible it reads. If
+  asked for quotes, suggest them in the conversation and let the user decide what
+  to add — the import path and the dashboard are the only ways in.
+
 ## Privacy boundary (non-negotiable)
 
 - `diary/` is categorically off-limits to every AI agent and skill — never read,

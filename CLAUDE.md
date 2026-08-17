@@ -72,7 +72,12 @@ at cost basis, in PLN; agents read only), `jobs/applications.yaml`,
 `learn/status.yaml`, `fitness/workouts.yaml`, `fitness/measurements.yaml`,
 quote adds, diary, `user.md`, and `profile/evidence.yaml`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
-pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml` (see below); the `/profile`
+pointer in `quotes.yaml`; the `npm run quotes:import` script
+(`scripts/import-quotes.ts`) appends to its `quotes` list from a CSV/JSON/YAML
+database the **user** curates — never an API and never AI-generated, since
+attributing a generated line to a real person is fabrication. It only ever
+appends, so dashboard-added quotes survive imports, and it never moves the
+pointer. The `/goals` skill owns `goals.yaml` (see below); the `/profile`
 skill owns the profile database (see below) and refreshes `user.md`
 (approve-gated, alongside the dashboard editor). The `/note` skill owns `notes/` — it writes each note
 through `scripts/write-note.ts` (the vault I/O path: atomic write + one labeled
