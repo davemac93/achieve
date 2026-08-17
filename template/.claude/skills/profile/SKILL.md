@@ -67,6 +67,30 @@ You never touch goals, tasks, notes, projects, quotes, or the diary.
 6. **On approval**, write exactly the approved files. If the user declines or
    asks for changes, revise and re-propose. Never write without approval.
 
+## The shape you write into `user.md`
+
+Keep the summary in the shape below. It is not decoration: it is the shape
+`scripts/migrate-profile.ts` can read back, so a summary you regenerate today
+can still be re-migrated tomorrow. Roles are a **bold line** — company, an
+em-dash, the title, then the dates in brackets — with the achievements as
+bullets under it, and the stack on a `Tech:` bullet.
+
+```markdown
+## Experience
+
+**Acme — Senior Platform Engineer** (2021-03 – present)
+- Ran the migration off self-hosted Kubernetes.
+- Tech: Kubernetes, TypeScript, Terraform
+
+**Initech — Backend Developer** (01/2018 – 2021)
+- Built the billing service.
+```
+
+`08/2025` and `2025-08` are both read (and both stored as `2025-08`); an end of
+`present` means the role is current and is stored as no `end` at all. A role
+line with no date, or one where the company and title cannot be told apart, is
+**reported as unparsed rather than guessed** — see below.
+
 ## Proposing skill promotions
 
 Read `profile/evidence.yaml` and count records per skill since each skill's
@@ -94,9 +118,13 @@ migration is one-time, approve-gated, and never destructive.
    node scripts/migrate-profile.ts --json   # the same proposal, as JSON
    ```
 
-2. **Show the preview to the user.** The parser guesses at free prose (which
-   side of a dash is the company, what counts as a constraint); the user has
-   the last word. Correct the JSON with them if anything is off.
+2. **Show the preview to the user.** The parser reads free prose (which side of
+   a dash is the company, what counts as a constraint); the user has the last
+   word. Correct the JSON with them if anything is off.
+   The preview ends with anything it **could not** read confidently — a role
+   with no dates, or one where the company and title read as the same text.
+   Those are never guessed into records. Ask the user about each one, put the
+   answers into the proposal JSON, and write that.
 3. **On approval**, write it:
 
    ```bash
