@@ -71,10 +71,23 @@ export type ModuleIconName =
   | "GraduationCap"
   | "Dumbbell"
 
+/**
+ * How the `create-achieve` picker treats a module.
+ *
+ * - `core` — installed always, never offered as a toggle. Home owns `/` and
+ *   Guide is how a fresh vault explains itself; a picker able to remove both
+ *   would land the user on a 404 with nothing to read.
+ * - `recommended` — pre-ticked. The spine everyone gets value from on day one.
+ * - `optional` — starts unticked: useful, but only to someone who wants it.
+ */
+export type ModulePreset = "core" | "recommended" | "optional"
+
 export interface ModuleDefinition {
   id: ModuleId
   /** Human label — sidebar entry and page title. */
   label: string
+  /** One line for the install picker: what this module is for. */
+  description: string
   icon: ModuleIconName
   /** Dashboard route it owns, or null for modules that render inside another
    * page (Tasks and Quotes are home cards) or have no UI yet (Ideas). */
@@ -96,6 +109,8 @@ export interface ModuleDefinition {
   guideSteps: GuideStepKey[]
   /** Modules that must be enabled alongside it — enabled automatically. */
   dependsOn: ModuleId[]
+  /** Whether the install picker forces, pre-ticks or merely offers it. */
+  preset: ModulePreset
 }
 
 /**
@@ -108,6 +123,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: "home",
     label: "Dashboard",
+    description: "The daily view — to-dos, the quote of the day and your goal tree in one place.",
     icon: "LayoutDashboard",
     route: "/",
     sidebarOrder: 0,
@@ -117,10 +133,13 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: [],
     guideSteps: ["vaultReady"],
     dependsOn: [],
+    preset: "core",
   },
   {
     id: "profile",
     label: "Profile",
+    description:
+      "Who you are: skills, experience, and the short summary Claude loads at the start of every session.",
     icon: "UserRound",
     route: "/profile",
     sidebarOrder: null,
@@ -131,10 +150,13 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["user.md", "profile"],
     guideSteps: ["profileFilled", "hasSkills"],
     dependsOn: [],
+    preset: "recommended",
   },
   {
     id: "goals",
     label: "Goals",
+    description:
+      "A direction → yearly → monthly → weekly tree whose progress is ticked step by step, never typed.",
     icon: "Target",
     route: "/goals",
     sidebarOrder: 3,
@@ -143,10 +165,12 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["goals.yaml", "goal-status.yaml"],
     guideSteps: ["hasGoals"],
     dependsOn: [],
+    preset: "recommended",
   },
   {
     id: "tasks",
     label: "Tasks",
+    description: "A to-do list on the home page, each item optionally tied to a weekly goal.",
     icon: "ListTodo",
     route: null, // the To-do card on the home page
     sidebarOrder: null,
@@ -155,10 +179,12 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["tasks.yaml"],
     guideSteps: ["hasTasks"],
     dependsOn: [],
+    preset: "recommended",
   },
   {
     id: "quotes",
     label: "Quotes",
+    description: "A quote of the day, drawn from a pool you curate yourself — nothing generated.",
     icon: "Quote",
     route: null, // the quote-of-the-day card on the home page
     sidebarOrder: null,
@@ -167,10 +193,12 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["quotes.yaml"],
     guideSteps: ["hasQuote"],
     dependsOn: [],
+    preset: "recommended",
   },
   {
     id: "diary",
     label: "Diary",
+    description: "Dated entries only you can read — no agent or skill ever opens this folder.",
     icon: "BookText",
     route: "/diary",
     sidebarOrder: 2,
@@ -179,10 +207,12 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["diary"],
     guideSteps: ["hasDiaryEntry"],
     dependsOn: [],
+    preset: "recommended",
   },
   {
     id: "notes",
     label: "Notes",
+    description: "Markdown notes, summarized, tagged and filed for you by the /note skill.",
     icon: "NotebookPen",
     route: "/notes",
     sidebarOrder: 1,
@@ -192,10 +222,12 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["notes"],
     guideSteps: ["hasNotes"],
     dependsOn: [],
+    preset: "recommended",
   },
   {
     id: "projects",
     label: "Projects",
+    description: "One markdown file per project, with its status surfaced on the dashboard.",
     icon: "FolderKanban",
     route: "/projects",
     sidebarOrder: 4,
@@ -204,10 +236,13 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["projects"],
     guideSteps: ["hasProjects"],
     dependsOn: [],
+    preset: "recommended",
   },
   {
     id: "investments",
     label: "Investments",
+    description:
+      "Holdings at cost basis, a living strategy document, and cited research — never buy/sell calls.",
     icon: "TrendingUp",
     route: "/investments",
     sidebarOrder: 5,
@@ -216,10 +251,13 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["investments.yaml"],
     guideSteps: ["hasHoldings", "hasStrategy", "hasResearch"],
     dependsOn: [],
+    preset: "optional",
   },
   {
     id: "jobs",
     label: "Jobs",
+    description:
+      "One folder per application: the job description, a gap analysis, and a CV built only from your own evidence.",
     icon: "Briefcase",
     route: "/jobs",
     sidebarOrder: 6,
@@ -232,10 +270,13 @@ export const MODULES: ModuleDefinition[] = [
     // The CV skill may use no facts but the ones in `profile/` and its evidence
     // log, so Jobs without Profile would be a CV with nothing honest to say.
     dependsOn: ["profile"],
+    preset: "optional",
   },
   {
     id: "learn",
     label: "Learn",
+    description:
+      "One folder per topic: why you are learning it, an ordered curriculum, and every /teach session.",
     icon: "GraduationCap",
     route: "/learn",
     sidebarOrder: 7,
@@ -246,10 +287,13 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["learn"],
     guideSteps: ["hasTopic"],
     dependsOn: [],
+    preset: "optional",
   },
   {
     id: "fitness",
     label: "Fitness",
+    description:
+      "An intake-driven training plan, logged sessions and measurements — no medical advice, no nutrition.",
     icon: "Dumbbell",
     route: "/fitness",
     sidebarOrder: 8,
@@ -269,10 +313,13 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["fitness"],
     guideSteps: ["hasTrainingPlan", "hasWorkout"],
     dependsOn: [],
+    preset: "optional",
   },
   {
     id: "ideas",
     label: "Ideas",
+    description:
+      "Dated, cited write-ups from /validate-idea and /improve-process (no dashboard tab yet).",
     icon: "Lightbulb",
     route: null, // skill-only for now
     sidebarOrder: null,
@@ -281,10 +328,12 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: ["ideas"],
     guideSteps: [],
     dependsOn: [],
+    preset: "optional",
   },
   {
     id: "guide",
     label: "Guide",
+    description: "An onboarding checklist that ticks itself as your vault fills up.",
     icon: "Compass",
     route: "/guide",
     sidebarOrder: 9,
@@ -293,6 +342,7 @@ export const MODULES: ModuleDefinition[] = [
     seedFiles: [],
     guideSteps: [],
     dependsOn: [],
+    preset: "core",
   },
 ]
 
@@ -349,6 +399,24 @@ export function resolveEnabledModules(
   for (const id of ids) if (isModuleId(id)) add(id)
 
   return MODULES.filter((m) => enabled.has(m.id)).map((m) => m.id)
+}
+
+/**
+ * What the `create-achieve` picker offers as a toggle — everything but the
+ * `core` modules, which it installs without asking.
+ */
+export function pickableModules(): ModuleDefinition[] {
+  return MODULES.filter((m) => m.preset !== "core")
+}
+
+/** Modules installed whether or not the user picks them. */
+export function coreModuleIds(): ModuleId[] {
+  return MODULES.filter((m) => m.preset === "core").map((m) => m.id)
+}
+
+/** The picker's pre-ticked set: core plus the recommended spine, registry order. */
+export function defaultModuleIds(): ModuleId[] {
+  return MODULES.filter((m) => m.preset !== "optional").map((m) => m.id)
 }
 
 /** The enabled modules themselves, in registry order. */

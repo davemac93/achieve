@@ -1,0 +1,34 @@
+{
+  "name": "create-achieve",
+  "version": "0.1.0",
+  "description": "Install achieve — a local-first, modular personal OS — and pick the modules you want.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-achieve": "./index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "picker.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davemac93/achieve.git",
+    "directory": "packages/create-achieve"
+  },
+  "homepage": "https://github.com/davemac93/achieve#readme",
+  "bugs": {
+    "url": "https://github.com/davemac93/achieve/issues"
+  },
+  "keywords": [
+    "achieve",
+    "personal-os",
+    "local-first",
+    "claude-code",
+    "create"
+  ]
+}

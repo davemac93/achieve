@@ -11,16 +11,44 @@ Core principles:
 - **Local-first.** Source of truth is plain files on disk in a `vault/`. No database brain.
 - **Private by default.** Your `diary/` is categorically off-limits to every AI agent and skill,
   and `type: private` notes are human-only.
-- **Trivial setup.** Clone, run one setup script to scaffold a blank vault — no database, no API keys.
+- **Trivial setup.** One command scaffolds a blank vault — no database, no API keys.
+- **Modular.** You pick the modules you want at install time, and change your mind later.
 - **Open.** MIT-licensed; anyone can clone and use it.
 
-## Quick start
+## Install
 
 ```bash
-npm install
-npm run setup   # scaffolds vault/ from template/ on first run (its own git repo)
+npx create-achieve my-os
+```
+
+The installer clones this repo, asks which modules the vault should run, records the answer in
+`vault/config.yaml`, scaffolds a blank vault for **those modules only**, and prints how to start:
+
+```bash
+cd my-os
 npm run dev     # dashboard at http://localhost:3000
 ```
+
+The picker is generated from the module registry of the version it just cloned, so it always offers
+exactly what that version ships — descriptions, defaults and dependencies included. A module another
+one depends on comes along automatically with a notice (Jobs pulls in Profile, because the CV skill
+may use no facts but the ones in `profile/`); decline it in the picker and the module that needed it
+is skipped instead, with the reason.
+
+Scripted installs skip the questions:
+
+```bash
+npx create-achieve my-os --modules notes,goals,diary   # exactly these, plus dependencies
+npx create-achieve my-os --all                         # everything
+npx create-achieve my-os --yes                         # the recommended set, unattended
+```
+
+You get a **normal checkout, not generated code**: upgrade with `git pull`, and change modules
+afterwards by editing `vault/config.yaml`. Needs Node 22.18+ (or 24+) and git; nothing native and no
+headless browser is pulled, by the installer or by the project.
+
+Already have a clone? `npm install && npm run setup && npm run dev` does the same thing, and
+`ACHIEVE_MODULES=notes,goals npm run setup` is the flagged install by another name.
 
 That's it — no database to provision, no credentials to paste. Your real content lives in `vault/`,
 which is gitignored and never published. The skills below run inside Claude Code from within the
@@ -134,10 +162,17 @@ vault/
 Each file has exactly one primary writer, so no two writers ever contend on the same file.
 
 Which parts land there is a choice: every feature is a **module** declared once in
-`lib/modules/registry.ts` (sidebar entry, vault paths, skills, seed files, guide steps,
-dependencies), and `vault/config.yaml` lists the ones this vault runs. Install a subset with
-`ACHIEVE_MODULES=notes,goals npm run setup`; modules a module depends on come along
-automatically. No `config.yaml` means everything is enabled.
+`lib/modules/registry.ts` (label, description, sidebar entry, vault paths, skills, seed files, guide
+steps, dependencies, and whether the installer pre-ticks it), and `vault/config.yaml` lists the ones
+this vault runs. `npx create-achieve` asks; `ACHIEVE_MODULES=notes,goals npm run setup` is the same
+choice made on the command line. Modules a module depends on come along automatically. No
+`config.yaml` means everything is enabled, so a vault scaffolded before modules existed keeps
+working.
+
+Changing your mind later is editing one file: add or remove ids in `vault/config.yaml` and the
+dashboard follows. What that cannot conjure is a module's seed files and its skill, which were never
+copied in — `npm run setup` only ever runs against an empty vault, so it never overwrites your
+data. Copy the ones you want out of the committed `template/` and you're done.
 
 ### Note types
 
@@ -226,8 +261,11 @@ privacy boundary).
 
 ## Status
 
-**v1 complete** — vault I/O layer, dashboard, the `/goals` and `/profile` skills, and the
-quote-rotation script are all shipped. Next work is scoped in the v2 and v3 roadmaps above.
+**v2 complete.** All nine phases of the [v2 plan](docs/v2-modular-plan.md) are shipped: the module
+registry, the Reviews/Search removals, the profile context database, the goals redesign, the Jobs,
+Learn and Fitness modules, the quotes importer, and `npx create-achieve` — the installer that makes
+the whole thing modular in practice rather than only in the code. Next work is scoped in the v3
+roadmap above.
 
 ## License
 
