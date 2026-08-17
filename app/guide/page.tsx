@@ -288,6 +288,45 @@ const STEPS: Record<GuideStepKey, Step> = {
       </>
     ),
   },
+  hasTrainingPlan: {
+    title: "Get a training plan cut for you",
+    what: (
+      <>
+        <K>/fitness</K> interviews you first — training history, injuries,
+        equipment, days a week, level, when you train — and stores the answers
+        in <K>fitness/intake.yaml</K> so it never asks twice. Only then does it
+        propose <K>fitness/plan.md</K>. It writes general training programs and
+        nothing more: anything about injuries, pain or medication goes to a
+        doctor or physiotherapist, and nutrition is out of scope.
+      </>
+    ),
+    how: (
+      <>
+        Run <K>/fitness</K> in Claude Code. Answer the intake, then approve the
+        plan — nothing is written before you do. Say <K>/fitness revise</K>{" "}
+        later when your equipment, schedule or level changes.
+      </>
+    ),
+  },
+  hasWorkout: {
+    title: "Log a session",
+    what: (
+      <>
+        The <TabLink href="/fitness">Fitness</TabLink> tab is where you log what
+        you actually did and what you weigh; adherence is the share of planned
+        sessions you hit, week by week, and a double week never buys back a
+        missed one. Progress photos, if you keep any, go in{" "}
+        <K>vault/fitness/photos/</K> — gitignored and permission-denied, so no
+        agent can open them and no git history keeps them.
+      </>
+    ),
+    how: (
+      <>
+        Use the Log a session form on the Fitness tab. Measurements go in the
+        card below it, and both write one labeled commit each.
+      </>
+    ),
+  },
 }
 
 export default async function GuidePage() {

@@ -10,6 +10,7 @@
     "rotate": "node scripts/rotate-quote.ts",
     "note": "node scripts/write-note.ts",
     "learn": "node scripts/write-learn.ts",
+    "fitness": "node scripts/write-fitness.ts",
     "migrate-profile": "node scripts/migrate-profile.ts",
     "migrate-goals": "node scripts/migrate-goals.ts",
     "cv:pdf": "node scripts/cv-pdf.ts",

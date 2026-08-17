@@ -23,10 +23,18 @@ const TIERING: Record<string, { model?: string; effort: string }> = {
   note: { model: 'sonnet', effort: 'low' },
   'research-company': { model: 'opus', effort: 'high' },
   cv: { model: 'opus', effort: 'high' },
+  fitness: { model: 'opus', effort: 'high' },
 }
 
 /** Skills that take an argument and must hint it in the / menu. */
-const NEEDS_ARGUMENT_HINT = ['note', 'teach', 'validate-idea', 'improve-process', 'cv']
+const NEEDS_ARGUMENT_HINT = [
+  'note',
+  'teach',
+  'validate-idea',
+  'improve-process',
+  'cv',
+  'fitness',
+]
 
 /**
  * Skills whose sanctioned write path is pre-approved, and the exact script each
@@ -36,6 +44,7 @@ const NEEDS_ARGUMENT_HINT = ['note', 'teach', 'validate-idea', 'improve-process'
 const PRE_APPROVED_WRITE_PATH: Record<string, string> = {
   note: 'Bash(node scripts/write-note.ts *)',
   teach: 'Bash(node scripts/write-learn.ts *)',
+  fitness: 'Bash(node scripts/write-fitness.ts *)',
 }
 
 async function skillNames(): Promise<string[]> {
@@ -91,15 +100,23 @@ describe('skill frontmatter polish', () => {
   })
 })
 
-describe('the diary privacy wall is enforced, not just prose', () => {
-  it('template settings.json denies reading diary/ for every agent', async () => {
+describe('the privacy walls are enforced, not just prose', () => {
+  async function denyRules(): Promise<string[]> {
     const raw = await fs.readFile(
       path.join(repoRoot, 'template', '.claude', 'settings.json'),
       'utf8',
     )
-    const settings = JSON.parse(raw) as {
-      permissions?: { deny?: string[] }
-    }
-    expect(settings.permissions?.deny).toContain('Read(./diary/**)')
+    const settings = JSON.parse(raw) as { permissions?: { deny?: string[] } }
+    return settings.permissions?.deny ?? []
+  }
+
+  it('template settings.json denies reading diary/ for every agent', async () => {
+    expect(await denyRules()).toContain('Read(./diary/**)')
+  })
+
+  // Body photos get the diary's treatment: denied to every agent, and kept out
+  // of git entirely, because history is effectively permanent.
+  it('template settings.json denies reading fitness/photos/ too', async () => {
+    expect(await denyRules()).toContain('Read(./fitness/photos/**)')
   })
 })

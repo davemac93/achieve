@@ -25,6 +25,14 @@ import { appendEvidence, type EvidenceInput } from "@/lib/dashboard/evidence"
 import { setApplicationStatus } from "@/lib/dashboard/jobs"
 import { isApplicationStatus } from "@/lib/dashboard/jobs-content"
 import { setCurriculumItemDone } from "@/lib/dashboard/learn"
+import {
+  deleteMeasurement,
+  deleteWorkout,
+  logMeasurement,
+  logWorkout,
+  type MeasurementInput,
+  type WorkoutInput,
+} from "@/lib/dashboard/fitness"
 
 export async function addTaskAction(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "")
@@ -145,6 +153,63 @@ export async function updateHoldingAction(
 export async function deleteHoldingAction(id: string): Promise<void> {
   await deleteHolding(id)
   revalidatePath("/investments")
+}
+
+/**
+ * Log a session into `fitness/workouts.yaml` — the dashboard's file. The plan
+ * above it belongs to the `/fitness` skill, which never logs on the user's
+ * behalf: what happened is theirs to claim, the same rule that keeps a
+ * curriculum tick out of `/teach`'s hands.
+ *
+ * An unparseable submission is ignored rather than written, like an empty task
+ * title; range and shape checks live in the data layer.
+ */
+export async function logWorkoutAction(formData: FormData): Promise<void> {
+  const date = String(formData.get("date") ?? "").trim()
+  const title = String(formData.get("title") ?? "").trim()
+  if (!date || !title) return
+
+  const input: WorkoutInput = { date, title }
+  const session = String(formData.get("session") ?? "").trim()
+  if (session) input.session = session
+  const duration = Number(formData.get("durationMin"))
+  if (Number.isFinite(duration) && duration > 0) input.durationMin = duration
+  const rpe = Number(formData.get("rpe"))
+  if (Number.isFinite(rpe) && rpe >= 1 && rpe <= 10) input.rpe = rpe
+  const notes = String(formData.get("notes") ?? "").trim()
+  if (notes) input.notes = notes
+
+  await logWorkout(input)
+  revalidatePath("/fitness")
+}
+
+export async function deleteWorkoutAction(id: string): Promise<void> {
+  await deleteWorkout(id)
+  revalidatePath("/fitness")
+}
+
+/** Log a body measurement into `fitness/measurements.yaml`. A row with a date
+ * and nothing measured is ignored — there would be nothing to chart. */
+export async function logMeasurementAction(formData: FormData): Promise<void> {
+  const date = String(formData.get("date") ?? "").trim()
+  if (!date) return
+
+  const input: MeasurementInput = { date }
+  const weight = Number(formData.get("weightKg"))
+  if (Number.isFinite(weight) && weight > 0) input.weightKg = weight
+  const waist = Number(formData.get("waistCm"))
+  if (Number.isFinite(waist) && waist > 0) input.waistCm = waist
+  const notes = String(formData.get("notes") ?? "").trim()
+  if (notes) input.notes = notes
+  if (input.weightKg === undefined && input.waistCm === undefined && !input.notes) return
+
+  await logMeasurement(input)
+  revalidatePath("/fitness")
+}
+
+export async function deleteMeasurementAction(id: string): Promise<void> {
+  await deleteMeasurement(id)
+  revalidatePath("/fitness")
 }
 
 export async function saveDiaryEntryAction(formData: FormData): Promise<void> {

@@ -29,6 +29,7 @@ export type ModuleId =
   | "investments"
   | "jobs"
   | "learn"
+  | "fitness"
   | "ideas"
   | "guide"
 
@@ -49,6 +50,8 @@ export type GuideStepKey =
   | "hasResearch"
   | "hasApplication"
   | "hasTopic"
+  | "hasTrainingPlan"
+  | "hasWorkout"
 
 /** Names of the lucide icons modules may use — bound to components in
  * [icons.ts](./icons.ts), which the type keeps exhaustive in both directions. */
@@ -66,6 +69,7 @@ export type ModuleIconName =
   | "Lightbulb"
   | "Briefcase"
   | "GraduationCap"
+  | "Dumbbell"
 
 export interface ModuleDefinition {
   id: ModuleId
@@ -244,6 +248,29 @@ export const MODULES: ModuleDefinition[] = [
     dependsOn: [],
   },
   {
+    id: "fitness",
+    label: "Fitness",
+    icon: "Dumbbell",
+    route: "/fitness",
+    sidebarOrder: 8,
+    // The intake and the plan are the `/fitness` skill's; the two logged series
+    // are the dashboard's. `fitness/photos/` is declared because the module owns
+    // it, and for no other reason: it is gitignored and carries a permission
+    // deny rule (`template/.claude/settings.json`), exactly like `diary/`, so no
+    // code here — or anywhere else — may open it.
+    vaultPaths: [
+      "fitness/intake.yaml",
+      "fitness/plan.md",
+      "fitness/workouts.yaml",
+      "fitness/measurements.yaml",
+      "fitness/photos/",
+    ],
+    skills: ["fitness"],
+    seedFiles: ["fitness"],
+    guideSteps: ["hasTrainingPlan", "hasWorkout"],
+    dependsOn: [],
+  },
+  {
     id: "ideas",
     label: "Ideas",
     icon: "Lightbulb",
@@ -260,7 +287,7 @@ export const MODULES: ModuleDefinition[] = [
     label: "Guide",
     icon: "Compass",
     route: "/guide",
-    sidebarOrder: 8,
+    sidebarOrder: 9,
     vaultPaths: [], // every checkmark is derived from other modules' stores
     skills: [],
     seedFiles: [],

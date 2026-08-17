@@ -1,0 +1,10 @@
+# Workout log — primary writer: dashboard. Agents read only.
+# One row per session that actually happened. The plan in fitness/plan.md is the
+# /fitness skill's; this file is the record of what you did against it, so no
+# file has two writers — the same split as goals.yaml vs goal-status.yaml.
+# Each entry: { id, date: YYYY-MM-DD, title, session?: <plan.md session id>,
+#               durationMin?, rpe?: 1-10, notes? }
+# Adherence is derived from these rows (lib/dashboard/fitness-content.ts); there
+# is no adherence field to type, exactly as with goal progress.
+# There is deliberately no calorie or macro field — nutrition is out of v1.
+workouts: []

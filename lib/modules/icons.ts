@@ -2,6 +2,7 @@ import {
   BookText,
   Briefcase,
   Compass,
+  Dumbbell,
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
@@ -38,4 +39,5 @@ export const MODULE_ICONS: Record<ModuleIconName, LucideIcon> = {
   Lightbulb,
   Briefcase,
   GraduationCap,
+  Dumbbell,
 }

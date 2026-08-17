@@ -55,9 +55,33 @@ session.
   type anywhere, exactly as with goals; a `kind: learn` goal step can point at a
   topic with `topic: <slug>`.
 
+## Fitness
+
+`fitness/` holds one training program and what happened against it:
+`intake.yaml` (the interview answers), `plan.md` (the program) — both the
+`/fitness` skill's — and `workouts.yaml` and `measurements.yaml`, which are the
+**dashboard's**. Logging a session is yours to do in the Fitness tab; the skill
+never logs on your behalf.
+
+- **The intake comes first.** `plan.md` is written only after `intake.yaml`
+  exists, and may schedule no more days a week than the intake says you have.
+  The write path enforces both, so a plan is never a generic program.
+- **No medical or clinical advice, ever.** Injuries, pain, medications and
+  health conditions are recorded in your own words and deferred to a doctor or
+  physiotherapist. The skill builds general training programs and nothing more:
+  it does not diagnose, does not rehabilitate, and does not clear you to train.
+  If something hurts, that is a question for a professional, not for Claude.
+- **Nutrition is out of scope in v1** — no macro tracking, no meal plans, no
+  calorie targets. There is no field for any of it.
+- **`fitness/photos/` is human-only**, exactly like `diary/`: gitignored *and*
+  permission-denied. Never look for photos, never list that folder, never open
+  one. If you want feedback on a photo, attach it in the conversation yourself.
+
 ## Privacy boundary (non-negotiable)
 
 - `diary/` is categorically off-limits to every AI agent and skill — never read,
   summarize, or quote from it. No exceptions.
+- `fitness/photos/` is off-limits on the same terms — body photos are the most
+  sensitive thing in the vault, and git history is permanent.
 - Notes with `type: private` are human-only; agents never read them.
 - Diary content must never enter this file or `user.md`.

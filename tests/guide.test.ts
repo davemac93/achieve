@@ -81,6 +81,16 @@ describe('guide progress derives from what exists in the vault', () => {
       'learn/kubernetes/plan.md',
       '---\ntitle: Kubernetes\nwhy: acme-platform-engineer/fit.md lists it as missing.\ncurriculum:\n  - id: pods\n    title: What a pod is\n---\n\nNotes.\n',
     )
+    await put(
+      dir,
+      'fitness/plan.md',
+      '---\ntitle: Upper/lower\nupdated: 2026-08-17\ndaysPerWeek: 3\n---\n\nSquat.\n',
+    )
+    await put(
+      dir,
+      'fitness/workouts.yaml',
+      'workouts:\n  - id: w1\n    date: 2026-08-17\n    title: Upper A\n',
+    )
 
     const progress = await getGuideProgress()
     expect(progress).toEqual({
@@ -98,6 +108,8 @@ describe('guide progress derives from what exists in the vault', () => {
       hasResearch: true,
       hasApplication: true,
       hasTopic: true,
+      hasTrainingPlan: true,
+      hasWorkout: true,
     })
   })
 })

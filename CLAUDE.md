@@ -30,7 +30,7 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
   Read-side data access lives in [lib/dashboard/](lib/dashboard) and is marked
   `server-only`.
 - **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, Investments, Jobs,
-  Learn, Guide (an onboarding checklist with checkmarks derived read-only from the
+  Learn, Fitness, Guide (an onboarding checklist with checkmarks derived read-only from the
   vault — [lib/dashboard/guide.ts](lib/dashboard/guide.ts)), with the user
   avatar pinned at the bottom
   ([components/app-sidebar.tsx](components/app-sidebar.tsx)). Membership and
@@ -69,7 +69,8 @@ six places.
 
 Dashboard owns `tasks.yaml`, `goal-status.yaml`, `investments.yaml` (holdings
 at cost basis, in PLN; agents read only), `jobs/applications.yaml`,
-`learn/status.yaml`, quote adds, diary, `user.md`, and `profile/evidence.yaml`.
+`learn/status.yaml`, `fitness/workouts.yaml`, `fitness/measurements.yaml`,
+quote adds, diary, `user.md`, and `profile/evidence.yaml`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
 pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml` (see below); the `/profile`
 skill owns the profile database (see below) and refreshes `user.md`
@@ -90,7 +91,9 @@ see vault content) and judges strategy fit itself; verdicts are fit-based
 skill refuses to run without `investments/strategy.md`. The `/cv` skill owns the
 three documents inside each `jobs/<company>-<role>/` folder (`jd.md`, `fit.md`,
 `cv.md`) and nothing else — `jobs/applications.yaml` is the dashboard's and
-`jobs/cv-template.md` is the user's (see below). Skills ship in
+`jobs/cv-template.md` is the user's (see below). The `/fitness` skill owns
+`fitness/intake.yaml` and `fitness/plan.md` (see below) and nothing else — it
+never logs a session and can never reach `fitness/photos/`. Skills ship in
 `template/.claude/skills/` and are scaffolded into each vault by `npm run
 setup` — which also writes `config.yaml` (the enabled module list) once, after
 which the user owns it. Agents are read-only elsewhere.
@@ -242,6 +245,43 @@ it means opening one place rather than hunting through scattered notes.
   The skill cannot reach `learn/status.yaml`: ticking an item is the user's
   claim, made in the Learn tab.
 
+## Fitness — the intake comes first, and the boundary is code
+
+`fitness/` splits along its writers: the `/fitness` skill owns the program, the
+dashboard owns what actually happened.
+
+| Store | Holds | Writer |
+|---|---|---|
+| `fitness/intake.yaml` | history, level, `daysPerWeek`, session length, time of day, equipment, `limitations` (verbatim), wants | `/fitness` |
+| `fitness/plan.md` | frontmatter (`title`, `updated`, `daysPerWeek`, `sessions[]`) + the program | `/fitness` |
+| `fitness/workouts.yaml` | one row per session done: date, title, plan `session`, minutes, RPE | **dashboard** |
+| `fitness/measurements.yaml` | dated `weightKg` / `waistCm` readings | **dashboard** |
+| `fitness/photos/` | body photos — **gitignored and permission-denied** | **nobody but the user** |
+
+- **The intake is enforced, not requested.** `writeTrainingPlan`
+  ([fitness-content.ts](lib/dashboard/fitness-content.ts)) refuses a plan when
+  `intake.yaml` is absent or has no `daysPerWeek`, and refuses one scheduling
+  *more* days a week than the intake says the user has. Both live in the write
+  path rather than in skill prose, so "no generic plans" survives a skill that
+  forgets. The answers persist in their own file, so revising the plan never
+  re-runs the interview.
+- **Adherence is derived, never typed** — the share of planned sessions logged
+  over the last eight weeks. Each week counts at most what it planned, so a
+  double week does not buy back a missed one: the plan is a cadence, and an
+  average that hid the gap would be worse than no number.
+- **No medical advice, and no nutrition.** The skill defers injuries, pain,
+  medications and conditions to a doctor or physiotherapist — the fitness
+  analogue of `/invest-strategy` refusing buy/sell orders — and v1 ships no
+  calorie, macro or meal field anywhere in the model. `tests/fitness-skill.test.ts`
+  pins both as contracts, and `tests/fitness.test.ts` pins the absence of
+  nutrition fields in the store itself.
+- **Photos are the second privacy wall.** `template/.gitignore` keeps them out
+  of the vault's permanent history and `template/.claude/settings.json` denies
+  `Read(./fitness/photos/**)` to every agent. No module under `lib/`, `app/`,
+  `components/` or `scripts/` names that path except the registry, which merely
+  *declares* it (plain data, no imports) — `tests/fitness.test.ts` asserts both
+  halves, the same shape of guard as the diary wall.
+
 `vault/.cache/prices.json` is derived, not vault content: the
 dashboard's prices layer ([lib/dashboard/prices.ts](lib/dashboard/prices.ts))
 fetches quotes and FX from Yahoo Finance per page view (in-memory TTL cache),
@@ -267,7 +307,10 @@ so long interview sessions still benefit from a strong session model.
 
 `diary/` is categorically off-limits to every AI agent and skill, and `type:
 private` notes are human-only. Diary content must never enter `vault/CLAUDE.md`
-or `user.md`. This is enforced, not just prose: `template/.claude/settings.json`
-(scaffolded into every vault) carries a permissions deny rule for
-`Read(./diary/**)`. `type: private` notes cannot be path-denied — privacy lives
-in their frontmatter — so they remain guarded by skill instructions alone.
+or `user.md`. `fitness/photos/` is off-limits on the same terms. This is
+enforced, not just prose: `template/.claude/settings.json` (scaffolded into
+every vault) carries permissions deny rules for `Read(./diary/**)` and
+`Read(./fitness/photos/**)`, and the photos are gitignored on top of that,
+because git history is effectively permanent. `type: private` notes cannot be
+path-denied — privacy lives in their frontmatter — so they remain guarded by
+skill instructions alone.
