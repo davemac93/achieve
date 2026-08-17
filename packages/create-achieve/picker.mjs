@@ -73,10 +73,14 @@ export function parseCliArgs(argv) {
   if (values.all && values.modules !== undefined) {
     throw new CliError('Pass either --all or --modules, not both.')
   }
+  const modules = values.modules === undefined ? null : splitIds(values.modules)
+  if (modules !== null && modules.length === 0) {
+    throw new CliError('--modules needs at least one id. Drop the flag to be asked instead.')
+  }
 
   return {
     dir: positionals[0] ?? DEFAULT_DIR,
-    modules: values.modules === undefined ? null : splitIds(values.modules),
+    modules,
     all: values.all,
     yes: values.yes,
     from: values.from ?? DEFAULT_REPO,

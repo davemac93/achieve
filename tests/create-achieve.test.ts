@@ -92,6 +92,8 @@ describe('command line', () => {
     expect(() => parseCliArgs(['--all', '--modules', 'notes'])).toThrow(CliError)
     expect(() => parseCliArgs(['--telepathy'])).toThrow(CliError)
     expect(() => parseCliArgs(['one', 'two'])).toThrow(/Expected one directory/)
+    // Caught before anything is cloned, rather than as an empty install later.
+    expect(() => parseCliArgs(['--modules', ' , '])).toThrow(/at least one id/)
   })
 
   it('reads --modules literally, and --all as everything', () => {
@@ -284,10 +286,14 @@ describe('installing a project', () => {
     expect(await exists(path.join(tmp, 'my-os', 'vault', 'profile')), 'profile/').toBe(true)
   })
 
-  it('refuses an unknown module id instead of installing around it', () => {
+  it('refuses an unknown module id, and leaves nothing half-installed', async () => {
     const result = run(['my-os', '--from', source, '--no-install', '--modules', 'telepathy'])
     expect(result.code).toBe(1)
     expect(result.stdout).toMatch(/Unknown module id\(s\): telepathy/)
+    // The clone is undone, so correcting the typo and running again works —
+    // otherwise the second attempt would fail on "already exists".
+    expect(await exists(path.join(tmp, 'my-os'))).toBe(false)
+    expect(run(['my-os', '--from', source, '--no-install', '--modules', 'notes']).code).toBe(0)
   })
 
   it('takes the recommended set when the picker is answered with Enter', async () => {

@@ -261,8 +261,11 @@ privacy boundary).
 
 ## Status
 
-**v1 complete** — vault I/O layer, dashboard, the `/goals` and `/profile` skills, and the
-quote-rotation script are all shipped. Next work is scoped in the v2 and v3 roadmaps above.
+**v2 complete.** All nine phases of the [v2 plan](docs/v2-modular-plan.md) are shipped: the module
+registry, the Reviews/Search removals, the profile context database, the goals redesign, the Jobs,
+Learn and Fitness modules, the quotes importer, and `npx create-achieve` — the installer that makes
+the whole thing modular in practice rather than only in the code. Next work is scoped in the v3
+roadmap above.
 
 ## License
 

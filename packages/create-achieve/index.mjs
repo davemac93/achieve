@@ -98,6 +98,17 @@ function targetDir(dir) {
   return abs
 }
 
+/**
+ * Undo the clone when the install is abandoned between cloning and installing —
+ * a mistyped module id, most likely. Leaving the checkout behind would make the
+ * corrected command fail on "already exists", which is a dead end for what is
+ * usually a typo. An empty directory the user pointed us at is put back.
+ */
+function cleanUp(dir, existed) {
+  fs.rmSync(dir, { recursive: true, force: true })
+  if (existed) fs.mkdirSync(dir, { recursive: true })
+}
+
 function clone(from, dir) {
   const source = fs.existsSync(path.resolve(from)) ? path.resolve(from) : from
   console.log(`\nCloning achieve into ${dir} …`)
@@ -195,13 +206,16 @@ async function pickModules(registry, asker) {
  */
 async function resolveInteractively(registry, picked, asker) {
   const pickable = registry.pickableModules().map((m) => m.id)
+  const core = new Set(registry.coreModuleIds())
   const selected = new Set(picked)
 
   for (const mod of registry.pickableModules()) {
     if (!selected.has(mod.id)) continue
+    // Core dependencies are installed either way; asking about one would be a
+    // question with a single valid answer.
     for (const dep of registry
       .resolveEnabledModules([mod.id])
-      .filter((id) => id !== mod.id && !selected.has(id))) {
+      .filter((id) => id !== mod.id && !selected.has(id) && !core.has(id))) {
       const depMod = registry.moduleById(dep)
       console.log(`\n  ${mod.label} needs ${depMod.label}: ${depMod.description}`)
       const answer = await asker.ask(`  Enable ${depMod.label} too? [Y/n] `)
@@ -234,11 +248,16 @@ function install(dir) {
 /** Hand the scaffolding to the repo's own setup script, module list and all. */
 function runSetup(dir, enabled) {
   console.log('')
-  execFileSync('node', [path.join('scripts', 'setup.mjs')], {
-    cwd: dir,
-    stdio: 'inherit',
-    env: { ...process.env, ACHIEVE_MODULES: enabled.join(',') },
-  })
+  try {
+    execFileSync('node', [path.join('scripts', 'setup.mjs')], {
+      cwd: dir,
+      stdio: 'inherit',
+      env: { ...process.env, ACHIEVE_MODULES: enabled.join(',') },
+    })
+  } catch {
+    // The checkout stays: it is complete, and only the vault is missing.
+    throw new CliError(`Scaffolding the vault failed. Fix the above, then run:\n` + `  cd ${dir} && npm run setup`)
+  }
 }
 
 function printNextSteps(dir, enabled, installed) {
@@ -268,20 +287,27 @@ async function main() {
 
   requireTypeStripping()
   requireGit()
+  const existed = fs.existsSync(path.resolve(process.cwd(), opts.dir))
   const dir = targetDir(opts.dir)
   clone(opts.from, dir)
-  const registry = await loadRegistry(dir)
 
   let resolved
-  if (isInteractive(opts)) {
-    const asker = createAsker()
-    try {
-      resolved = await resolveInteractively(registry, await pickModules(registry, asker), asker)
-    } finally {
-      asker.close()
+  try {
+    const registry = await loadRegistry(dir)
+    if (isInteractive(opts)) {
+      const asker = createAsker()
+      try {
+        resolved = await resolveInteractively(registry, await pickModules(registry, asker), asker)
+      } finally {
+        asker.close()
+      }
+    } else {
+      resolved = resolveSelection(registry, requestedFromFlags(registry, opts))
     }
-  } else {
-    resolved = resolveSelection(registry, requestedFromFlags(registry, opts))
+  } catch (err) {
+    if (!(err instanceof CliError)) throw err
+    cleanUp(dir, existed)
+    throw new CliError(`${err.message}\n\nNothing was left half-installed — ${dir} is gone again.`)
   }
 
   if (resolved.added.length > 0) {
@@ -289,9 +315,6 @@ async function main() {
   }
   for (const { id, missing } of resolved.dropped) {
     console.log(`\n  (skipping ${id} — it needs ${missing.join(', ')}, which you turned down)`)
-  }
-  if (resolved.enabled.length === 0) {
-    throw new CliError('That leaves no modules at all. Pick at least one.')
   }
 
   const installed = opts.install ? install(dir) : false
