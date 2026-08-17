@@ -1,0 +1,8 @@
+# Body measurements — primary writer: dashboard. Agents read only.
+# One row per dated reading; the Fitness tab charts them over time.
+# Each entry: { id, date: YYYY-MM-DD, weightKg?, waistCm?, notes? }
+# A reading is never interpolated or back-filled: a point on the chart is a
+# number you wrote down, not one the dashboard guessed.
+# Progress photos are NOT tracked here. They live in fitness/photos/, which is
+# gitignored and permission-denied — human-only, exactly like diary/.
+measurements: []

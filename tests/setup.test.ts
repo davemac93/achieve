@@ -45,6 +45,8 @@ const EXPECTED_DIRS = [
   'jobs',
   'profile',
   path.join('profile', 'experience'),
+  'fitness',
+  path.join('fitness', 'photos'),
 ]
 
 describe('setup script', () => {
@@ -99,6 +101,26 @@ describe('setup script', () => {
     expect(await fs.readFile(path.join(vaultDir, 'goals.yaml'), 'utf8')).toContain('goals: []')
   })
 
+  /**
+   * The photo wall, proven where it has to hold: in a vault the user actually
+   * gets. Both halves ship — git never sees the folder, and no agent may read
+   * it — which is the same treatment `diary/` gets, for the same reason.
+   */
+  it('scaffolds fitness/photos/ gitignored and permission-denied', async () => {
+    expect(runSetup(vaultDir).code).toBe(0)
+
+    const photo = path.join(vaultDir, 'fitness', 'photos', 'front-2026-08-17.jpg')
+    await fs.writeFile(photo, 'not really a jpeg')
+    // git check-ignore exits 0 only when the path is ignored.
+    execFileSync('git', ['check-ignore', '-q', photo], { cwd: vaultDir })
+
+    const settings = JSON.parse(
+      await fs.readFile(path.join(vaultDir, '.claude', 'settings.json'), 'utf8'),
+    ) as { permissions?: { deny?: string[] } }
+    expect(settings.permissions?.deny).toContain('Read(./fitness/photos/**)')
+    expect(settings.permissions?.deny).toContain('Read(./diary/**)')
+  })
+
   it('records the enabled modules in config.yaml', async () => {
     runSetup(vaultDir)
     const config = await fs.readFile(path.join(vaultDir, 'config.yaml'), 'utf8')
@@ -146,7 +168,7 @@ describe('setup script', () => {
   })
 
   it('rejects an unknown module id rather than silently skipping it', () => {
-    const result = runSetup(vaultDir, 'notes,fitness')
+    const result = runSetup(vaultDir, 'notes,telepathy')
     expect(result.code).toBe(1)
     expect(result.stderr).toMatch(/Unknown module id/)
   })

@@ -47,6 +47,8 @@ A read-mostly window over your vault, with the simple human write actions built 
 - **Learn** — one folder per topic: why you are learning it, an ordered curriculum whose items tick
   like goal steps (progress derived from what you tick, never typed), and every study session
   `/teach` has written on it.
+- **Fitness** — the training plan `/fitness` cut for you, your logged sessions and measurements,
+  weekly adherence (a double week never buys back a missed one) and a progress chart.
 
 Every write goes through a server action into the vault I/O layer — the browser never touches disk,
 and each change is one atomic write plus one labeled git commit.
@@ -68,6 +70,11 @@ and each change is one atomic write plus one labeled git commit.
   out *why* the topic exists (the goal step or missing job requirement that demanded it), proposes
   an ordered curriculum whose items tick exactly like goal steps, and writes each session's summary
   into `learn/<topic>/sessions/` — everything about a topic in one folder, not scattered notes.
+- **`/fitness`** — interviews you first (training history, injuries, equipment, days a week, level,
+  when you train), stores the answers in `fitness/intake.yaml` so it never asks twice, and only
+  then proposes an approve-gated training plan built around them — never more days a week than you
+  said you have. It builds **general training programs only**: injuries, pain, medications and
+  health conditions go to a doctor or physiotherapist, and nutrition is deliberately out of scope.
 - **`/cv`** — saves a job description under `jobs/<company>-<role>/`, writes a gap analysis citing
   your own profile evidence for what you already have (and naming what you don't), and fills
   **your** CV template (`jobs/cv-template.md`) for that role. It may use only facts already in
@@ -150,9 +157,14 @@ usage warrants, but each addition is a deliberate, documented change here and in
 - **`diary/` is categorically off-limits to every AI agent and skill.** It is never read,
   summarized, or quoted, and its content never enters `CLAUDE.md` or `user.md`. The dashboard is the
   only thing that touches it — because it's your own writing tool.
+- **`fitness/photos/` is off-limits on the same terms.** Body photos are the most sensitive thing in
+  the vault and git history is effectively permanent, so they are **gitignored** *and* carry a
+  permission deny rule. No agent goes looking; you attach a photo in the conversation on the rare
+  occasion you want feedback on one.
 - **`type: private` notes are human-only** — agents never read their bodies.
 
-These contracts are enforced in code (sanctioned-writer modules) and guarded by tests.
+These contracts are enforced in code (sanctioned-writer modules), in the vault's shipped permission
+deny rules, and guarded by tests.
 
 ## Obsidian (optional viewer)
 

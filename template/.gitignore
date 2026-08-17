@@ -7,6 +7,17 @@
 # the version worth diffing; the PDF is one command away whenever it's needed.
 /jobs/*/cv.pdf
 
+# Progress and form photos — the most sensitive data in the vault, and git
+# history is effectively permanent: a body photo committed once stays in the
+# repository forever, even after the file is deleted. So they never enter it.
+# The other half of the wall is a permission deny rule in
+# .claude/settings.json, which stops any agent from reading them at all; the
+# user attaches one in conversation on the rare occasion they want feedback.
+# The contents are ignored rather than the folder itself, so the folder still
+# ships (and stays visible in the vault) with nothing in it but the placeholder.
+/fitness/photos/*
+!/fitness/photos/.gitkeep
+
 # Obsidian's per-session workspace state (open panes, last cursor position,
 # installed community plugin binaries) — noisy and machine-specific, unlike
 # the meaningful settings in app.json/core-plugins.json which stay tracked.

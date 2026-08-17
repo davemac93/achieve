@@ -138,7 +138,7 @@ describe('enabled modules resolve against the registry', () => {
   })
 
   it('drops ids it does not know, rather than breaking the dashboard', () => {
-    expect(resolveEnabledModules(['notes', 'fitness'])).toEqual(['notes'])
+    expect(resolveEnabledModules(['notes', 'telepathy'])).toEqual(['notes'])
   })
 })
 
@@ -184,6 +184,7 @@ describe('the dashboard chrome derives from registry × config', () => {
       ['Investments', '/investments'],
       ['Jobs', '/jobs'],
       ['Learn', '/learn'],
+      ['Fitness', '/fitness'],
       ['Guide', '/guide'],
     ])
   })
@@ -198,6 +199,7 @@ describe('the dashboard chrome derives from registry × config', () => {
       '/investments': 'Investments',
       '/jobs': 'Jobs',
       '/learn': 'Learn',
+      '/fitness': 'Fitness',
       '/guide': 'Guide',
       '/profile': 'Profile',
     })
@@ -219,6 +221,8 @@ describe('the dashboard chrome derives from registry × config', () => {
       'hasResearch',
       'hasApplication',
       'hasTopic',
+      'hasTrainingPlan',
+      'hasWorkout',
     ])
   })
 

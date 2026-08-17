@@ -11,6 +11,7 @@ import { getHoldings } from "@/lib/dashboard/investments"
 import { getProfile, getSkills } from "@/lib/dashboard/profile"
 import { getApplications } from "@/lib/dashboard/jobs"
 import { getTopics } from "@/lib/dashboard/learn"
+import { getTrainingPlan, getWorkouts } from "@/lib/dashboard/fitness"
 import type { GuideStepKey } from "@/lib/modules/registry"
 
 /**
@@ -45,6 +46,8 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     research,
     applications,
     topics,
+    trainingPlan,
+    workouts,
   ] = await Promise.all([
     getProfile(),
     getSkills(),
@@ -59,6 +62,8 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     vault.list("investments/research"),
     getApplications(),
     getTopics(),
+    getTrainingPlan(),
+    getWorkouts(),
   ])
 
   return {
@@ -77,5 +82,7 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     hasResearch: research.length > 0,
     hasApplication: applications.length > 0,
     hasTopic: topics.length > 0,
+    hasTrainingPlan: trainingPlan !== null,
+    hasWorkout: workouts.length > 0,
   }
 }
