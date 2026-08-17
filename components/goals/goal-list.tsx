@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { Lock } from "lucide-react"
 
 import { setStepDoneAction } from "@/app/actions"
@@ -19,6 +20,8 @@ export interface GoalView {
   orphan?: boolean
   kind?: "learn" | "do"
   skill?: string
+  /** A `kind: learn` step's `learn/<topic>/` curriculum, if it has one. */
+  topic?: string
   done: boolean
   leaf: boolean
   percent: number | null
@@ -92,6 +95,16 @@ export function GoalList({ goals }: { goals: GoalView[] }) {
                   {goal.skill ? ` · ${goal.skill}` : ""}
                   {goal.orphan ? " · unlinked" : ""}
                 </span>
+                {/* A learn step says a capability is missing; the topic is the
+                    curriculum that actually builds it. */}
+                {goal.topic ? (
+                  <Link
+                    href={`/learn/${goal.topic}`}
+                    className="text-muted-foreground mt-0.5 text-xs hover:underline"
+                  >
+                    Curriculum: {goal.topic} →
+                  </Link>
+                ) : null}
                 {blocked && !goal.done ? (
                   <span className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
                     <Lock className="size-3" />

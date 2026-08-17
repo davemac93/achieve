@@ -69,6 +69,7 @@ goals:
     kind: learn|do                # steps only — never on a direction
     after: [<id>, <id>]           # prerequisites — what must be done first
     skill: <skill name>           # optional; ticking it records evidence
+    topic: <learn topic slug>     # `kind: learn` steps only — learn/<topic>/
 ```
 
 Rules (this is the **soft tree** — keep it valid):
@@ -89,6 +90,11 @@ Rules (this is the **soft tree** — keep it valid):
   `/profile` promote a skill level honestly later. Tag only steps that really
   exercise the skill; an untagged step still ticks and still counts toward
   progress.
+- `topic:` points a `kind: learn` step at the `learn/<topic>/` curriculum that
+  actually builds the capability — the step says something is missing, the topic
+  is the plan for getting it. Only on a `learn` step, never on a `do` step or a
+  direction. Name a topic that exists (or one `/teach` is about to create); the
+  Goals tab links straight to it.
 - Your output must pass `validateGoalTree()` in `lib/dashboard/goal-tree.ts`
   (well-formed entries, unique ids, correct parent references, no `after`
   cycles). Mentally run it before proposing.
@@ -176,6 +182,9 @@ Break the approved goal into `monthly` goals and `weekly` steps:
   false constraint that blocks work that could have started.
 - Tag with `skill:` where the step exercises a named skill from
   `profile/skills.yaml`.
+- For a `learn` step, add `topic:` when a `learn/<topic>/` curriculum covers it
+  (or offer `/teach` to open one). "Learn Kubernetes" as a lone checkbox is a
+  wish; the topic is where it becomes a sequence of things to do.
 - Aim for a handful of steps per goal, not a project plan. If it needs thirty,
   the goal is too big for twelve months — go back to feasibility.
 

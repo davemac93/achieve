@@ -28,6 +28,7 @@ export type ModuleId =
   | "projects"
   | "investments"
   | "jobs"
+  | "learn"
   | "ideas"
   | "guide"
 
@@ -47,6 +48,7 @@ export type GuideStepKey =
   | "hasStrategy"
   | "hasResearch"
   | "hasApplication"
+  | "hasTopic"
 
 /** Names of the lucide icons modules may use — bound to components in
  * [icons.ts](./icons.ts), which the type keeps exhaustive in both directions. */
@@ -63,6 +65,7 @@ export type ModuleIconName =
   | "Quote"
   | "Lightbulb"
   | "Briefcase"
+  | "GraduationCap"
 
 export interface ModuleDefinition {
   id: ModuleId
@@ -180,7 +183,8 @@ export const MODULES: ModuleDefinition[] = [
     route: "/notes",
     sidebarOrder: 1,
     vaultPaths: ["notes/"],
-    skills: ["note", "teach"],
+    // `/teach` moved to the Learn module: it writes topics now, not notes.
+    skills: ["note"],
     seedFiles: ["notes"],
     guideSteps: ["hasNotes"],
     dependsOn: [],
@@ -226,6 +230,20 @@ export const MODULES: ModuleDefinition[] = [
     dependsOn: ["profile"],
   },
   {
+    id: "learn",
+    label: "Learn",
+    icon: "GraduationCap",
+    route: "/learn",
+    sidebarOrder: 7,
+    // One folder per topic (plan.md + sessions/, /teach-owned) plus the ticked
+    // curriculum items, which are the dashboard's.
+    vaultPaths: ["learn/"],
+    skills: ["teach"],
+    seedFiles: ["learn"],
+    guideSteps: ["hasTopic"],
+    dependsOn: [],
+  },
+  {
     id: "ideas",
     label: "Ideas",
     icon: "Lightbulb",
@@ -242,7 +260,7 @@ export const MODULES: ModuleDefinition[] = [
     label: "Guide",
     icon: "Compass",
     route: "/guide",
-    sidebarOrder: 7,
+    sidebarOrder: 8,
     vaultPaths: [], // every checkmark is derived from other modules' stores
     skills: [],
     seedFiles: [],

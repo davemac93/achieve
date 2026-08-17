@@ -10,6 +10,7 @@ import { getProjects } from "@/lib/dashboard/projects"
 import { getHoldings } from "@/lib/dashboard/investments"
 import { getProfile, getSkills } from "@/lib/dashboard/profile"
 import { getApplications } from "@/lib/dashboard/jobs"
+import { getTopics } from "@/lib/dashboard/learn"
 import type { GuideStepKey } from "@/lib/modules/registry"
 
 /**
@@ -43,6 +44,7 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     hasStrategy,
     research,
     applications,
+    topics,
   ] = await Promise.all([
     getProfile(),
     getSkills(),
@@ -56,6 +58,7 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     vault.exists("investments/strategy.md"),
     vault.list("investments/research"),
     getApplications(),
+    getTopics(),
   ])
 
   return {
@@ -73,5 +76,6 @@ export async function getGuideProgress(): Promise<GuideProgress> {
     hasStrategy,
     hasResearch: research.length > 0,
     hasApplication: applications.length > 0,
+    hasTopic: topics.length > 0,
   }
 }

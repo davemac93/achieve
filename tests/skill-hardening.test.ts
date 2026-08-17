@@ -28,8 +28,15 @@ const TIERING: Record<string, { model?: string; effort: string }> = {
 /** Skills that take an argument and must hint it in the / menu. */
 const NEEDS_ARGUMENT_HINT = ['note', 'teach', 'validate-idea', 'improve-process', 'cv']
 
-/** Skills whose sanctioned write path is pre-approved, and nothing else. */
-const WRITE_NOTE_ALLOWED = ['note', 'teach']
+/**
+ * Skills whose sanctioned write path is pre-approved, and the exact script each
+ * one gets. `/teach` writes topics under `learn/` now, not notes, so its
+ * pre-approval moved with it — a skill must never carry a blanket Bash grant.
+ */
+const PRE_APPROVED_WRITE_PATH: Record<string, string> = {
+  note: 'Bash(node scripts/write-note.ts *)',
+  teach: 'Bash(node scripts/write-learn.ts *)',
+}
 
 async function skillNames(): Promise<string[]> {
   const entries = await fs.readdir(skillsDir, { withFileTypes: true })
@@ -69,11 +76,12 @@ describe('skill frontmatter polish', () => {
     }
   })
 
-  it('note and teach pre-approve exactly the write-note script', async () => {
+  it('a skill with a write path pre-approves exactly that script', async () => {
     for (const name of await skillNames()) {
       const fm = await frontmatter(name)
-      if (WRITE_NOTE_ALLOWED.includes(name)) {
-        expect(fm['allowed-tools']).toBe('Bash(node scripts/write-note.ts *)')
+      const script = PRE_APPROVED_WRITE_PATH[name]
+      if (script) {
+        expect(fm['allowed-tools'], `${name}: allowed-tools`).toBe(script)
       } else {
         // No other skill gets pre-approved tools — approval friction is the
         // safety mechanism everywhere else.

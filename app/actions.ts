@@ -24,6 +24,7 @@ import { saveProfile } from "@/lib/dashboard/profile"
 import { appendEvidence, type EvidenceInput } from "@/lib/dashboard/evidence"
 import { setApplicationStatus } from "@/lib/dashboard/jobs"
 import { isApplicationStatus } from "@/lib/dashboard/jobs-content"
+import { setCurriculumItemDone } from "@/lib/dashboard/learn"
 
 export async function addTaskAction(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "")
@@ -65,6 +66,35 @@ export async function setStepDoneAction(id: string, done: boolean): Promise<void
   }
   revalidatePath("/")
   revalidatePath("/goals")
+}
+
+/**
+ * Tick or untick a curriculum item — the Learn module's half of the same loop
+ * `setStepDoneAction` runs for goals, and deliberately identical in shape: the
+ * item's state in `learn/status.yaml`, then, when the item carries a `skill:`
+ * tag, one record in the append-only evidence log.
+ *
+ * The source is `learn:<topic>:<itemId>`, so the trail back to what was studied
+ * survives, and `appendEvidence` is idempotent on `(source, skill)` — re-ticking
+ * an item never inflates a count. Unticking retracts nothing: the log is
+ * append-only, and the learning happened either way.
+ */
+export async function setCurriculumItemDoneAction(
+  slug: string,
+  itemId: string,
+  done: boolean,
+): Promise<void> {
+  const { topic, item } = await setCurriculumItemDone(slug, itemId, done)
+  if (done && item.skill) {
+    await appendEvidence({
+      skill: item.skill,
+      what: `${topic.title}: ${item.title}`,
+      source: `learn:${topic.slug}:${item.id}`,
+    })
+    revalidatePath("/profile")
+  }
+  revalidatePath("/learn")
+  revalidatePath(`/learn/${slug}`)
 }
 
 export async function addQuoteAction(formData: FormData): Promise<void> {

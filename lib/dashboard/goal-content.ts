@@ -34,9 +34,11 @@ export const GOALS_HEADER = `# Goal definitions — primary writer: /goals skill
 # Strict tree softly enforced: orphans are allowed (flag them), the agent
 # steers toward full linkage.
 # Each entry: { id, horizon: direction|yearly|monthly|weekly, title, parent?,
-#               orphan?, kind: learn|do, after: [ids], skill? }
+#               orphan?, kind: learn|do, after: [ids], skill?, topic? }
 # \`after\` is sequence (what waits on what), which \`parent\` (containment)
-# cannot express; \`skill\` turns a tick into a profile evidence record.
+# cannot express; \`skill\` turns a tick into a profile evidence record;
+# \`topic\` points a \`kind: learn\` step at the learn/<topic>/ curriculum that
+# actually builds the capability.
 `
 
 export const STATUS_HEADER = `# Volatile per-step state — primary writer: dashboard. Agents read only.
@@ -88,6 +90,7 @@ export function normalizeGoal(raw: unknown): Goal | null {
     if (after.length > 0) goal.after = after
   }
   if (typeof entry.skill === "string" && entry.skill.trim()) goal.skill = entry.skill.trim()
+  if (typeof entry.topic === "string" && entry.topic.trim()) goal.topic = entry.topic.trim()
   return goal
 }
 

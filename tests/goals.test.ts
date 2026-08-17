@@ -96,12 +96,36 @@ describe('validateGoalTree', () => {
 
   it('refuses to let a direction carry work', () => {
     const report = validateGoalTree([
-      { id: 'v', horizon: 'direction', title: 'Vision', kind: 'do', after: ['x'], skill: 'k8s' },
+      {
+        id: 'v',
+        horizon: 'direction',
+        title: 'Vision',
+        kind: 'do',
+        after: ['x'],
+        skill: 'k8s',
+        topic: 'kubernetes',
+      },
     ])
     expect(report.ok).toBe(false)
-    for (const field of ['kind', 'after', 'skill']) {
+    for (const field of ['kind', 'after', 'skill', 'topic']) {
       expect(report.errors.some((e) => e.message.includes(`\`${field}\``))).toBe(true)
     }
+  })
+
+  it('keeps `topic` on learn steps — a curriculum is how a capability is acquired', () => {
+    const learn = validateGoalTree([
+      ...TREE,
+      { id: 's', horizon: 'weekly', title: 'Learn k8s', parent: 'm', kind: 'learn', topic: 'kubernetes' },
+    ])
+    expect(learn.ok).toBe(true)
+
+    const doStep = validateGoalTree([
+      ...TREE,
+      { id: 's', horizon: 'weekly', title: 'Ship it', parent: 'm', kind: 'do', topic: 'kubernetes' },
+    ])
+    expect(doStep.errors.some((e) => /`topic` belongs to a `kind: learn` step/.test(e.message))).toBe(
+      true,
+    )
   })
 
   it('flags an invalid kind', () => {

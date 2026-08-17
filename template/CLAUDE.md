@@ -39,6 +39,22 @@ written by `npm run cv:pdf`).
 - Those missing requirements are what `/goals` reads when it looks for goals
   worth having.
 
+## Learn
+
+`learn/<topic>/` holds one thing being learned: `plan.md` (what it is, **why** —
+the goal step or missing job requirement that demanded it — and an ordered
+curriculum of tickable items) and `sessions/<date>.md`, one file per study
+session.
+
+- The `/teach` skill writes those two, and only those. It no longer creates
+  loose `learning` notes; `/note` still owns `notes/`.
+- `learn/status.yaml` — which curriculum items are ticked — is the
+  **dashboard's**. Ticking an item is yours to do in the Learn tab, and a
+  `skill:`-tagged item appends to `profile/evidence.yaml` when you do.
+- A topic's progress is the share of its items ticked. There is no percentage to
+  type anywhere, exactly as with goals; a `kind: learn` goal step can point at a
+  topic with `topic: <slug>`.
+
 ## Privacy boundary (non-negotiable)
 
 - `diary/` is categorically off-limits to every AI agent and skill — never read,

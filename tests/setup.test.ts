@@ -124,7 +124,8 @@ describe('setup script', () => {
     }
 
     const skills = await fs.readdir(path.join(vaultDir, '.claude', 'skills'))
-    expect(skills.sort()).toEqual(['goals', 'note', 'teach'])
+    // /teach belongs to the Learn module now, so notes+goals no longer ships it.
+    expect(skills.sort()).toEqual(['goals', 'note'])
 
     const config = await fs.readFile(path.join(vaultDir, 'config.yaml'), 'utf8')
     expect(config).toContain('- goals')
