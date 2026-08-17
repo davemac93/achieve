@@ -9,6 +9,7 @@
     "setup": "node scripts/setup.mjs",
     "rotate": "node scripts/rotate-quote.ts",
     "note": "node scripts/write-note.ts",
+    "learn": "node scripts/write-learn.ts",
     "migrate-profile": "node scripts/migrate-profile.ts",
     "migrate-goals": "node scripts/migrate-goals.ts",
     "cv:pdf": "node scripts/cv-pdf.ts",

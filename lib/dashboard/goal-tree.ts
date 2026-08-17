@@ -58,8 +58,8 @@ export interface GoalTreeReport {
  *
  * Two rules earn their own explanation:
  *
- * - **A direction carries no `kind`, `after` or `skill`.** Those belong to work
- *   you can finish; a north star is not work.
+ * - **A direction carries no `kind`, `after`, `skill` or `topic`.** Those belong
+ *   to work you can finish; a north star is not work.
  * - **`after` must not cycle** (A after B after A). Nothing in such a set is
  *   ever startable, and the tree can express it, so the validator has to catch
  *   it. Parent links cannot cycle by construction — each hop is exactly one
@@ -85,8 +85,16 @@ export function validateGoalTree(goals: Goal[]): GoalTreeReport {
       errors.push({ id: goal.id, message: `invalid horizon "${goal.horizon}"` })
     if (goal.kind != null && !GOAL_KINDS.includes(goal.kind as GoalKind))
       errors.push({ id: goal.id, message: `invalid kind "${goal.kind}" — use learn or do` })
+    // A topic is the curriculum that acquires a capability, so it only belongs
+    // to a step that says one is missing. On a `do` step it would claim the
+    // learning happens somewhere it does not.
+    if (goal.topic != null && goal.kind !== "learn" && goal.horizon !== "direction")
+      errors.push({
+        id: goal.id,
+        message: "`topic` belongs to a `kind: learn` step — that is what a curriculum is for",
+      })
     if (goal.horizon === "direction") {
-      for (const field of ["kind", "after", "skill"] as const) {
+      for (const field of ["kind", "after", "skill", "topic"] as const) {
         if (goal[field] != null)
           errors.push({
             id: goal.id,

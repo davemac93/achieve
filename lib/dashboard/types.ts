@@ -59,6 +59,12 @@ export interface Goal {
   after?: string[]
   /** Ticking a step tagged with a skill appends to `profile/evidence.yaml`. */
   skill?: string
+  /**
+   * For a `kind: learn` step: the `learn/<topic>/` folder that carries it out.
+   * The step says a capability is needed; the topic is the curriculum that
+   * actually builds it, and its ticked items are where the evidence comes from.
+   */
+  topic?: string
 }
 
 /**

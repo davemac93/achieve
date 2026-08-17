@@ -76,6 +76,11 @@ describe('guide progress derives from what exists in the vault', () => {
       'profile/skills.yaml',
       'skills:\n  - skill: Kubernetes\n    level: working\n    evidenceCount: 6\n',
     )
+    await put(
+      dir,
+      'learn/kubernetes/plan.md',
+      '---\ntitle: Kubernetes\nwhy: acme-platform-engineer/fit.md lists it as missing.\ncurriculum:\n  - id: pods\n    title: What a pod is\n---\n\nNotes.\n',
+    )
 
     const progress = await getGuideProgress()
     expect(progress).toEqual({
@@ -92,6 +97,7 @@ describe('guide progress derives from what exists in the vault', () => {
       hasStrategy: true,
       hasResearch: true,
       hasApplication: true,
+      hasTopic: true,
     })
   })
 })

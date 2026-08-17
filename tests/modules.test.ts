@@ -183,6 +183,7 @@ describe('the dashboard chrome derives from registry × config', () => {
       ['Projects', '/projects'],
       ['Investments', '/investments'],
       ['Jobs', '/jobs'],
+      ['Learn', '/learn'],
       ['Guide', '/guide'],
     ])
   })
@@ -196,6 +197,7 @@ describe('the dashboard chrome derives from registry × config', () => {
       '/projects': 'Projects',
       '/investments': 'Investments',
       '/jobs': 'Jobs',
+      '/learn': 'Learn',
       '/guide': 'Guide',
       '/profile': 'Profile',
     })
@@ -216,6 +218,7 @@ describe('the dashboard chrome derives from registry × config', () => {
       'hasStrategy',
       'hasResearch',
       'hasApplication',
+      'hasTopic',
     ])
   })
 

@@ -44,6 +44,9 @@ A read-mostly window over your vault, with the simple human write actions built 
 - **Jobs** — the application pipeline (`saved → applied → interview → offer | rejected`, with the
   date of each stage), the gap analysis behind each saved job, and a print view of the CV you
   tailored for it.
+- **Learn** — one folder per topic: why you are learning it, an ordered curriculum whose items tick
+  like goal steps (progress derived from what you tick, never typed), and every study session
+  `/teach` has written on it.
 
 Every write goes through a server action into the vault I/O layer — the browser never touches disk,
 and each change is one atomic write plus one labeled git commit.
@@ -61,8 +64,10 @@ and each change is one atomic write plus one labeled git commit.
   short `user.md` summary (approve-gated).
 - **`/note`** — turns raw input into a summarized, categorized note under `notes/`, written through
   the vault I/O path as one labeled commit.
-- **`/teach`** — runs an active-recall learning session grounded in your `learning` notes and
-  `user.md`, then captures what stuck as a new `learning` note (via the `/note` write path).
+- **`/teach`** — runs an active-recall learning session on a topic under `learn/<topic>/`: it works
+  out *why* the topic exists (the goal step or missing job requirement that demanded it), proposes
+  an ordered curriculum whose items tick exactly like goal steps, and writes each session's summary
+  into `learn/<topic>/sessions/` — everything about a topic in one folder, not scattered notes.
 - **`/cv`** — saves a job description under `jobs/<company>-<role>/`, writes a gap analysis citing
   your own profile evidence for what you already have (and naming what you don't), and fills
   **your** CV template (`jobs/cv-template.md`) for that role. It may use only facts already in
@@ -131,7 +136,7 @@ usage rather than being invented up front:
 | `type` | For |
 | --- | --- |
 | `working` | active work — ideas, meeting notes, todos-in-prose |
-| `learning` | things being learned or studied (the Teach skill reads these) |
+| `learning` | things being learned or studied (structured study lives in `learn/` instead) |
 | `validation` | evidence and findings while checking something out |
 | `private` | **human-only** — agents never read the body |
 

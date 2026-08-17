@@ -164,8 +164,9 @@ const STEPS: Record<GuideStepKey, Step> = {
       <>
         <TabLink href="/notes">Notes</TabLink> are typed (<K>working</K>,{" "}
         <K>learning</K>, <K>validation</K>, <K>private</K> — private ones are
-        human-only). <K>learning</K> notes feed <K>/teach</K>, which quizzes
-        you on your own material.
+        human-only). They are the catch-all for anything worth keeping;
+        structured study lives in <TabLink href="/learn">Learn</TabLink>{" "}
+        instead.
       </>
     ),
     how: (
@@ -265,6 +266,28 @@ const STEPS: Record<GuideStepKey, Step> = {
       </>
     ),
   },
+  hasTopic: {
+    title: "Open a learning topic",
+    what: (
+      <>
+        A topic is a folder under <K>vault/learn/</K>: <K>plan.md</K> says what
+        you are learning and <em>why</em> — the goal or the missing job
+        requirement that demanded it — with an ordered curriculum whose items
+        tick like goal steps, and <K>sessions/</K> keeps every study session in
+        one place. Ticking a skill-tagged item records evidence, so learning
+        promotes a skill honestly.
+      </>
+    ),
+    how: (
+      <>
+        Run <K>/teach</K> in Claude Code with what you need to learn. It
+        proposes the plan and the curriculum, runs the session by active recall
+        rather than lecture, and writes the summary back into the topic. The{" "}
+        <TabLink href="/learn">Learn</TabLink> tab shows each topic&apos;s
+        derived progress and its sessions.
+      </>
+    ),
+  },
 }
 
 export default async function GuidePage() {
@@ -323,15 +346,11 @@ export default async function GuidePage() {
         <CardHeader>
           <CardTitle>Going further</CardTitle>
           <CardDescription>
-            Beyond the checklist, three more skills work with what you've built
+            Beyond the checklist, two more skills work with what you've built
             up.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-muted-foreground flex flex-col gap-2 text-sm">
-          <p>
-            <K>/teach</K> — an active-recall study session built from your{" "}
-            <K>learning</K> notes; what sticks gets written back as a new note.
-          </p>
           <p>
             <K>/validate-idea</K> — pressure-tests a business idea against live
             web evidence and files a cited verdict under <K>ideas/</K>.

@@ -5,7 +5,9 @@
 # Strict tree softly enforced: orphans are allowed (flag them), the agent
 # steers toward full linkage.
 # Each entry: { id, horizon: direction|yearly|monthly|weekly, title, parent?,
-#               orphan?, kind: learn|do, after: [ids], skill? }
+#               orphan?, kind: learn|do, after: [ids], skill?, topic? }
 # `after` is sequence (what waits on what), which `parent` (containment)
-# cannot express; `skill` turns a tick into a profile evidence record.
+# cannot express; `skill` turns a tick into a profile evidence record;
+# `topic` points a `kind: learn` step at the learn/<topic>/ curriculum that
+# actually builds the capability.
 goals: []

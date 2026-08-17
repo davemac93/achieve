@@ -30,7 +30,7 @@ Set `ACHIEVE_VAULT_DIR` to point the vault layer at a vault outside the repo
   Read-side data access lives in [lib/dashboard/](lib/dashboard) and is marked
   `server-only`.
 - **Sidebar nav:** Dashboard, Notes, Diary, Goals, Projects, Investments, Jobs,
-  Guide (an onboarding checklist with checkmarks derived read-only from the
+  Learn, Guide (an onboarding checklist with checkmarks derived read-only from the
   vault — [lib/dashboard/guide.ts](lib/dashboard/guide.ts)), with the user
   avatar pinned at the bottom
   ([components/app-sidebar.tsx](components/app-sidebar.tsx)). Membership and
@@ -68,15 +68,15 @@ six places.
 ## Write ownership (one primary writer per file)
 
 Dashboard owns `tasks.yaml`, `goal-status.yaml`, `investments.yaml` (holdings
-at cost basis, in PLN; agents read only), `jobs/applications.yaml`, quote adds,
-diary, `user.md`, and `profile/evidence.yaml`.
+at cost basis, in PLN; agents read only), `jobs/applications.yaml`,
+`learn/status.yaml`, quote adds, diary, `user.md`, and `profile/evidence.yaml`.
 The `npm run rotate` script (`scripts/rotate-quote.ts`) owns the `current`
 pointer in `quotes.yaml`. The `/goals` skill owns `goals.yaml` (see below); the `/profile`
 skill owns the profile database (see below) and refreshes `user.md`
 (approve-gated, alongside the dashboard editor). The `/note` skill owns `notes/` — it writes each note
 through `scripts/write-note.ts` (the vault I/O path: atomic write + one labeled
-commit), never by hand; `/teach` creates new `learning` notes through that same
-`/note` write path (not a second writer). The `/validate-idea` and
+commit), never by hand. The `/teach` skill owns `learn/<topic>/` (see below).
+The `/validate-idea` and
 `/improve-process` skills each write dated, cited reports under `ideas/`
 (approve-gated) — `ideas/` is AI-writable, unlike `diary/` and `type: private`
 notes. The `/invest-strategy` skill owns `investments/strategy.md` — an
@@ -209,6 +209,38 @@ what happened to it. A folder with no row still shows in the pipeline, as
   dashboard's print view — which shares the renderer and stylesheet
   ([lib/dashboard/cv-render.ts](lib/dashboard/cv-render.ts)), so it is the same
   document rather than a lookalike.
+
+## Learn — one folder per topic, and a curriculum that ticks like a goal
+
+`learn/<topic>/` is everything about one thing being learned, so coming back to
+it means opening one place rather than hunting through scattered notes.
+
+| Store | Holds | Writer |
+|---|---|---|
+| `learn/<topic>/plan.md` | frontmatter (`title`, `why`, optional `goal`/`job`, `started`, `curriculum[]`) + prose | `/teach` |
+| `learn/<topic>/sessions/<YYYY-MM-DD>.md` | one study session: what was covered, what is solid, what is shaky | `/teach` |
+| `learn/status.yaml` | topic → item id → `{ done }` | **dashboard** |
+
+- **A curriculum item *is* a goal step**, not a lookalike:
+  [learn-content.ts](lib/dashboard/learn-content.ts) maps each item onto `Goal`
+  and hands it to `validateGoalTree`, `orderGoalTree` and `computeGoalProgress`.
+  So `after` prerequisites block a tick, ordering puts prerequisites first, and
+  topic progress is the *unweighted* share of items ticked — the same rules as
+  goals, from the same code, with no second notion of "done" to drift.
+- **`why` is required.** The write path refuses a plan without the goal step,
+  the missing job requirement, or the user's own reason that produced the topic.
+  A curriculum with no reason behind it is the aimless studying this store
+  replaces; `topic:` on a `kind: learn` goal step points the other way down the
+  same link, and the Goals tab links straight to the curriculum.
+- **Ticking a `skill:`-tagged item appends evidence** with the source
+  `learn:<topic>:<itemId>` — the learning half of the profile loop, idempotent
+  on `(source, skill)` exactly like the goals half, and never retracted on an
+  untick.
+- **`/teach` no longer writes `learning` notes.** It writes topics, through
+  [scripts/write-learn.ts](scripts/write-learn.ts) (the vault I/O path: atomic
+  write + one labeled commit), never by hand. `/note` keeps owning `notes/`.
+  The skill cannot reach `learn/status.yaml`: ticking an item is the user's
+  claim, made in the Learn tab.
 
 `vault/.cache/prices.json` is derived, not vault content: the
 dashboard's prices layer ([lib/dashboard/prices.ts](lib/dashboard/prices.ts))
