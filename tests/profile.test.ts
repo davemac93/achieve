@@ -22,6 +22,7 @@ import {
   EVIDENCE_FILE,
   applyProposal,
   buildExperienceFile,
+  experienceSlug,
   parseUserMd,
   proposalFiles,
 } from '../lib/dashboard/profile-content.ts'
@@ -89,6 +90,43 @@ Dawid — building a local-first personal OS.
 - Long uninterrupted blocks beat meetings.
 - I cannot work evenings — family time.
 - Sharpest in the morning, useless after 20:00.
+`
+
+/**
+ * The shape `/profile` itself writes into the summary — bold role line, dates
+ * in brackets, achievements as bullets under it (#92). Fictional employers on
+ * purpose: fixtures never carry a real profile.
+ */
+const SUMMARY_USER_MD = `# User profile
+
+## Who I am
+
+Alex — building a local-first personal OS.
+
+## Experience
+
+**Northwind Bank — Software Developer** (08/2025 – present)
+- Modernizing banking monitoring: access-request tickets cut from 14 000 to 500.
+- Automated ~20 Jira entries/day from job-failure detection.
+- Tech: Python, SQL, Jira API
+
+**Contoso Industries — Global Digital Specialist** (01/2025 – present)
+- Global digital transformation for Indirect Procurement: 97.5% backlog reduction.
+- **Impact:** SAP automation for material creation, FO orders and reminders.
+
+**Contoso Industries — Procurement Analyst** (03/2024 - 01/2025)
+- SOPs for missing documentation; 3+ FTEs recovered through optimization.
+
+**Initech — Service and Solution Delivery Specialist** (07/2021 – 03/2024)
+- Process-transition expert moving complex operations across 5+ teams.
+
+## Skills
+
+- Python — working
+
+## How I work best
+
+- Long uninterrupted blocks beat meetings.
 `
 
 describe('dashboard profile editing persists to user.md', () => {
@@ -468,6 +506,130 @@ describe('migrating a hand-written user.md into the structured stores', () => {
     expect(() =>
       buildExperienceFile({ company: ' ', title: 'x', start: '2020', tech: [], body: '' }),
     ).toThrow(/needs a company/)
+  })
+})
+
+describe('migrating the bold-role shape /profile itself writes (#92)', () => {
+  let dir: string
+
+  beforeEach(async () => {
+    dir = await makeVaultRepo()
+    process.env.ACHIEVE_VAULT_DIR = dir
+    await write(dir, 'user.md', SUMMARY_USER_MD)
+    git(dir, ['add', '-A'])
+    git(dir, ['commit', '-q', '-m', 'seed'])
+  })
+
+  afterEach(async () => {
+    delete process.env.ACHIEVE_VAULT_DIR
+    await fs.rm(dir, { recursive: true, force: true })
+  })
+
+  it('reads one role per bold line, with its dates and the bullets under it', () => {
+    const proposal = parseUserMd(SUMMARY_USER_MD)
+
+    expect(proposal.experience.map((r) => [r.company, r.title, r.start, r.end])).toEqual([
+      ['Northwind Bank', 'Software Developer', '2025-08', undefined],
+      ['Contoso Industries', 'Global Digital Specialist', '2025-01', undefined],
+      ['Contoso Industries', 'Procurement Analyst', '2024-03', '2025-01'],
+      ['Initech', 'Service and Solution Delivery Specialist', '2021-07', '2024-03'],
+    ])
+
+    const first = proposal.experience[0]!
+    expect(first.tech).toEqual(['Python', 'SQL', 'Jira API'])
+    expect(first.body).toContain('Automated ~20 Jira entries/day')
+    // The bullets land under the role above them, not scattered into files.
+    expect(first.body).not.toContain('Indirect Procurement')
+    // An emphasized bullet is an achievement, never a phantom employer.
+    expect(proposal.experience[1]!.body).toContain('**Impact:**')
+    expect(proposal.unparsed).toEqual([])
+  })
+
+  it('emits no role it had to guess: no empty start, no company === title', () => {
+    for (const role of parseUserMd(SUMMARY_USER_MD).experience) {
+      expect(role.start).not.toBe('')
+      expect(role.company.toLowerCase()).not.toBe(role.title.toLowerCase())
+    }
+  })
+
+  it('names each slug token once, however much the title echoes the company', () => {
+    expect(parseUserMd(SUMMARY_USER_MD).experience.map((r) => r.slug)).toEqual([
+      'northwind-bank-software-developer',
+      'contoso-industries-global-digital-specialist',
+      'contoso-industries-procurement-analyst',
+      'initech-service-and-solution-delivery-specialist',
+    ])
+    expect(experienceSlug('Acme', 'Acme Platform Engineer')).toBe('acme-platform-engineer')
+    expect(experienceSlug('Acme', 'Acme')).toBe('acme')
+  })
+
+  it('round-trips: roles, dates and tech survive the real --write run intact', async () => {
+    execFileSync('node', [MIGRATE, '--write'], {
+      cwd: repoRoot,
+      env: { ...process.env, ACHIEVE_VAULT_DIR: dir },
+      encoding: 'utf8',
+    })
+
+    const roles = await getExperience()
+    expect(roles.map((r) => [r.company, r.title, r.start, r.end])).toEqual([
+      ['Northwind Bank', 'Software Developer', '2025-08', undefined],
+      ['Contoso Industries', 'Global Digital Specialist', '2025-01', undefined],
+      ['Contoso Industries', 'Procurement Analyst', '2024-03', '2025-01'],
+      ['Initech', 'Service and Solution Delivery Specialist', '2021-07', '2024-03'],
+    ])
+    expect(roles[0]!.tech).toEqual(['Python', 'SQL', 'Jira API'])
+    expect(roles[0]!.body).toContain('access-request tickets cut from 14 000 to 500')
+  })
+
+  it('reports what it cannot read instead of inventing a role per bullet', async () => {
+    await write(
+      dir,
+      'user.md',
+      [
+        '## Experience',
+        '',
+        '- Modernizing banking monitoring: tickets cut from 14 000 to 500.',
+        '- SOPs for missing documentation; 3+ FTEs recovered.',
+        '',
+        '**Northwind Bank — Software Developer**',
+        '- No dates on that one.',
+        '',
+      ].join('\n'),
+    )
+
+    const out = execFileSync('node', [MIGRATE], {
+      cwd: repoRoot,
+      env: { ...process.env, ACHIEVE_VAULT_DIR: dir },
+      encoding: 'utf8',
+    })
+
+    // Not one bogus role file, and the gaps are named rather than filled in.
+    expect(out).not.toContain('profile/experience/')
+    expect(out).toContain('could not be read confidently')
+    expect(out).toContain('no start date')
+    expect(out).toContain('Nothing was guessed')
+
+    const proposal = parseUserMd(await fs.readFile(path.join(dir, 'user.md'), 'utf8'))
+    expect(proposal.experience).toEqual([])
+    // Both gaps are named: the homeless bullets, and the undated role line.
+    expect(proposal.unparsed.map((u) => [u.section, u.text])).toEqual([
+      ['Experience', '- Modernizing banking monitoring: tickets cut from 14 000 to 500.'],
+      ['Experience', '**Northwind Bank — Software Developer**'],
+    ])
+  })
+
+  it('parses the very shape the /profile skill documents — the two stay in step', async () => {
+    const skill = await fs.readFile(SKILL, 'utf8')
+    const example = /```markdown\n([\s\S]*?)```/.exec(skill)?.[1]
+    expect(example, 'SKILL.md must document the user.md role shape').toBeTruthy()
+
+    const proposal = parseUserMd(example!)
+    expect(proposal.experience.map((r) => [r.company, r.title, r.start, r.end])).toEqual([
+      ['Acme', 'Senior Platform Engineer', '2021-03', undefined],
+      ['Initech', 'Backend Developer', '2018-01', '2021'],
+    ])
+    expect(proposal.experience[0]!.tech).toEqual(['Kubernetes', 'TypeScript', 'Terraform'])
+    expect(proposal.unparsed).toEqual([])
   })
 })
 

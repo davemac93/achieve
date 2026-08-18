@@ -43,15 +43,26 @@ export function isSkillLevel(value: unknown): value is SkillLevel {
   return typeof value === "string" && (SKILL_LEVELS as readonly string[]).includes(value)
 }
 
-/** File-name stem for a role: `<company>-<title>`, kebab and ASCII-safe. */
+/**
+ * File-name stem for a role: `<company>-<title>`, kebab and ASCII-safe.
+ *
+ * Each token appears once. A title that repeats the company ("Acme \u2014 Acme
+ * Platform Engineer") is normal on a CV, and the naive join turned it into a
+ * stuttering file name, so repeats are dropped in first-seen order.
+ */
 export function experienceSlug(company: string, title: string): string {
-  const slug = `${company} ${title}`
+  const tokens = `${company} ${title}`
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "") // drop combining marks left by NFKD
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-  return slug || "role"
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+
+  const unique: string[] = []
+  for (const token of tokens) {
+    if (!unique.includes(token)) unique.push(token)
+  }
+  return unique.join("-") || "role"
 }
 
 /** Compose `profile/experience/<slug>.md`: frontmatter, then the narrative. */
@@ -88,6 +99,24 @@ export interface ProfileProposal {
   education: Education[]
   preferences: Preferences
   experience: Experience[]
+  /** Text that looked like a record but could not be read confidently. */
+  unparsed: UnparsedText[]
+}
+
+/**
+ * A block the parser refused to guess at.
+ *
+ * The profile database is the CV skill's only permitted source of fact, so an
+ * invented role is worse than a missing one: the user can supply what is
+ * missing in conversation, but cannot un-believe a plausible fabrication.
+ */
+export interface UnparsedText {
+  /** The `##` heading the text sat under. */
+  section: string
+  /** The line (or first line) that could not be turned into a record. */
+  text: string
+  /** Why it was left out — phrased so the user knows what to supply. */
+  reason: string
 }
 
 export interface ProposedFile {
@@ -141,23 +170,52 @@ function subSections(lines: string[]): Section[] {
 
 const DASH = /\s+[—–-]\s+/
 
-/** `2019–2023`, `2019-06 — present`, `(2019 to now)` … → start/end, if present. */
+/**
+ * One date, in the forms a CV actually uses: `2019`, `2019-06`, `06/2019`.
+ * The month alternative is anchored to a real month and a digit boundary so a
+ * bare-year range (`2019-2023`) is not misread as June of 2019.
+ */
+const DATE = String.raw`\d{4}-(?:0[1-9]|1[0-2])(?!\d)|\d{1,2}\/\d{4}|\d{4}(?!\d)`
+const OPEN_END = String.raw`present|now|current|today|ongoing`
+const RANGE = new RegExp(
+  String.raw`\b(${DATE})\s*(?:[—–-]|to|until)\s*(${DATE}|${OPEN_END})?`,
+  "i",
+)
+
+/** `08/2025` → `2025-08`; anything else is already sortable as text. */
+function normalizeDate(raw: string): string {
+  const slash = /^(\d{1,2})\/(\d{4})$/.exec(raw)
+  return slash ? `${slash[2]}-${slash[1]!.padStart(2, "0")}` : raw
+}
+
+/**
+ * `2019–2023`, `08/2025 – present`, `(2019 to now)` … → start/end, if present.
+ * A lone date (`(2021)`) reads as a start with no end, never as a guessed range.
+ */
 function parseDates(text: string): { start?: string; end?: string } {
-  const range =
-    /\b(\d{4}(?:-\d{2})?)\s*(?:[—–-]|to)\s*(present|now|current|\d{4}(?:-\d{2})?)?/i.exec(text)
-  if (!range) return {}
-  const end = range[2]
-  return {
-    start: range[1],
-    end: end && !/^(present|now|current)$/i.test(end) ? end : undefined,
+  const range = RANGE.exec(text)
+  if (range) {
+    const end = range[2]
+    return {
+      start: normalizeDate(range[1]!),
+      end: end && !new RegExp(`^(?:${OPEN_END})$`, "i").test(end) ? normalizeDate(end) : undefined,
+    }
   }
+  const single = new RegExp(String.raw`\b(${DATE})`).exec(text)
+  return single ? { start: normalizeDate(single[1]!) } : {}
 }
 
 /** Strip a trailing date range and its brackets from a heading. */
 function withoutDates(text: string): string {
   return text
     .replace(/\((?:[^()]*\d{4}[^()]*)\)/g, "")
-    .replace(/,?\s*\b\d{4}(?:-\d{2})?\s*(?:[—–-]|to)\s*(?:present|now|current|\d{4}(?:-\d{2})?)?\s*$/i, "")
+    .replace(
+      new RegExp(
+        String.raw`,?\s*\b(?:${DATE})\s*(?:[—–-]|to|until)\s*(?:${OPEN_END}|${DATE})?\s*$`,
+        "i",
+      ),
+      "",
+    )
     .trim()
 }
 
@@ -166,6 +224,8 @@ function withoutDates(text: string): string {
  * (`Acme — Senior Engineer`) reads as *company — title*, the more common CV
  * order. Both are guesses on free prose — the user corrects them at the
  * approval step, which is exactly why migration is proposed, never applied.
+ * With neither marker there is nothing to split on, so the caller gets the
+ * text twice and `unconfident` turns that into a reported gap, not a record.
  */
 function parseRoleHeading(heading: string): { company: string; title: string } {
   const text = withoutDates(heading)
@@ -195,17 +255,100 @@ function splitList(text: string): string[] {
     .filter(Boolean)
 }
 
-function parseExperienceSection(section: Section): Experience[] {
-  const roles = subSections(section.lines)
-  // No `###` roles: fall back to one bullet per role, body empty.
-  const blocks: { heading: string; lines: string[] }[] =
-    roles.length > 0
-      ? roles
-      : bullets(section.lines).map((text) => ({ heading: text, lines: [] }))
+/** A candidate role: the line that heads it, plus everything under it. */
+interface RoleBlock {
+  /** The full header line, dates included — what dates are read from. */
+  header: string
+  /** The part of the header that names the role. */
+  label: string
+  /** The lines below it, until the next header: the achievements. */
+  lines: string[]
+}
 
-  return blocks.map((block) => {
-    const { company, title } = parseRoleHeading(block.heading)
-    const dates = parseDates(block.heading)
+/** A bold run opening a line, optionally after a list marker: `**Acme — Dev**`. */
+const BOLD_HEADER = /^\s*(?:[-*]\s+)?\*\*(.+?)\*\*\s*(.*)$/
+/** What may follow the bold run and still leave it a header: nothing, or dates. */
+const DATE_TAIL = new RegExp(String.raw`^[,;([\s—–-]*(?:${DATE})`)
+
+/**
+ * Split an Experience section into role blocks.
+ *
+ * Two shapes head a role: a `###` heading, and a **bold line** — the shape
+ * `/profile` itself writes into the `user.md` summary, and the one real CVs
+ * use. A bold run only heads a role when nothing but a date follows it, so an
+ * emphasized achievement bullet (`- **Impact:** cut tickets 90%`) stays an
+ * achievement instead of becoming a phantom employer.
+ */
+function roleBlocks(lines: string[]): { blocks: RoleBlock[]; preamble: string[] } {
+  const out: RoleBlock[] = []
+  const preamble: string[] = []
+  let current: RoleBlock | null = null
+
+  for (const line of lines) {
+    const heading = /^###\s+(.*\S)\s*$/.exec(line)
+    if (heading) {
+      current = { header: heading[1]!, label: heading[1]!, lines: [] }
+      out.push(current)
+      continue
+    }
+    const bold = BOLD_HEADER.exec(line)
+    const label = bold?.[1]?.trim()
+    const tail = bold?.[2]?.trim() ?? ""
+    if (label && !label.endsWith(":") && (tail === "" || DATE_TAIL.test(tail))) {
+      current = { header: line.trim(), label, lines: [] }
+      out.push(current)
+      continue
+    }
+    if (current) current.lines.push(line)
+    else preamble.push(line)
+  }
+  return { blocks: out, preamble }
+}
+
+/**
+ * Why a block is not safe to write, or `null` when it is.
+ *
+ * Company == title means the split guessed nothing (it saw one string, not a
+ * role), and a missing start means the whole record is undatable. Either way
+ * the honest move is to report the text and let the user say what it was.
+ */
+function unconfident(role: Experience): string | null {
+  if (!role.company || !role.title) return "no company and title could be told apart"
+  if (role.company.toLowerCase() === role.title.toLowerCase()) {
+    return "the company and the title read as the same text"
+  }
+  if (!role.start) return "no start date"
+  return null
+}
+
+function parseExperienceSection(section: Section): {
+  experience: Experience[]
+  unparsed: UnparsedText[]
+} {
+  const headed = roleBlocks(section.lines)
+  // No headers at all: fall back to one bullet per role, body empty.
+  const blocks: RoleBlock[] =
+    headed.blocks.length > 0
+      ? headed.blocks
+      : bullets(section.lines).map((text) => ({ header: text, label: text, lines: [] }))
+
+  const experience: Experience[] = []
+  const unparsed: UnparsedText[] = []
+
+  // Achievements written above the first role belong to no role. Say so rather
+  // than dropping them: content that vanishes quietly is content nobody misses.
+  const orphaned = headed.blocks.length > 0 ? headed.preamble.filter((l) => l.trim()) : []
+  if (orphaned.length > 0) {
+    unparsed.push({
+      section: section.heading,
+      text: orphaned[0]!.trim(),
+      reason: "it sits above the first role, so it belongs to none of them",
+    })
+  }
+
+  for (const block of blocks) {
+    const { company, title } = parseRoleHeading(block.label)
+    const dates = parseDates(block.header)
     const tech: string[] = []
     const bodyLines: string[] = []
     for (const line of block.lines) {
@@ -217,7 +360,7 @@ function parseExperienceSection(section: Section): Experience[] {
       }
       bodyLines.push(line)
     }
-    return {
+    const role: Experience = {
       slug: experienceSlug(company, title),
       company,
       title,
@@ -226,7 +369,19 @@ function parseExperienceSection(section: Section): Experience[] {
       tech,
       body: bodyLines.join("\n").trim(),
     }
-  })
+    const reason = unconfident(role)
+    if (reason) unparsed.push({ section: section.heading, text: block.header, reason })
+    else experience.push(role)
+  }
+
+  if (blocks.length === 0 && section.lines.some((line) => line.trim())) {
+    unparsed.push({
+      section: section.heading,
+      text: section.lines.find((line) => line.trim())!.trim(),
+      reason: "no role heading or bold role line to hang it on",
+    })
+  }
+  return { experience, unparsed }
 }
 
 /**
@@ -300,7 +455,11 @@ const HEADING_MATCHERS: {
 }[] = [
   {
     match: /experience|work history|career|roles|employment/i,
-    apply: (p, s) => p.experience.push(...parseExperienceSection(s)),
+    apply: (p, s) => {
+      const parsed = parseExperienceSection(s)
+      p.experience.push(...parsed.experience)
+      p.unparsed.push(...parsed.unparsed)
+    },
   },
   {
     match: /education|degree|studies|university|school/i,
@@ -328,6 +487,9 @@ const HEADING_MATCHERS: {
  * (experience, education, skills, how-I-work) and ignores everything else,
  * which stays in `user.md` untouched. Nothing here writes — the caller shows
  * the proposal and only an approved one reaches disk.
+ *
+ * Best-effort is not the same as guessy: what it cannot read confidently lands
+ * in `unparsed` for the user to supply, never in a record.
  */
 export function parseUserMd(text: string): ProfileProposal {
   const proposal: ProfileProposal = {
@@ -335,6 +497,7 @@ export function parseUserMd(text: string): ProfileProposal {
     education: [],
     preferences: emptyPreferences(),
     experience: [],
+    unparsed: [],
   }
   for (const section of sections(text)) {
     for (const matcher of HEADING_MATCHERS) {

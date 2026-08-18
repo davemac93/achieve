@@ -27,15 +27,39 @@ import {
   parseUserMd,
   proposalFiles,
   type ProfileProposal,
+  type UnparsedText,
 } from '../lib/dashboard/profile-content.ts'
 
-function preview(files: { relPath: string; content: string }[]): string {
+function preview(
+  files: { relPath: string; content: string }[],
+  unparsed: UnparsedText[],
+): string {
   if (files.length === 0) {
-    return 'Nothing to migrate: no experience, education, skills or preferences sections found in user.md.'
+    return unparsed.length > 0
+      ? 'Nothing could be migrated confidently out of user.md.'
+      : 'Nothing to migrate: no experience, education, skills or preferences sections found in user.md.'
   }
   return files
     .map((file) => `--- ${file.relPath} ---\n${file.content.trimEnd()}`)
     .join('\n\n')
+}
+
+/**
+ * What the parser refused to guess at. Printed in every mode, because a silent
+ * omission is the one failure the user cannot notice: the profile database is
+ * what the CV skill is allowed to state as fact, so a gap has to be visible
+ * and answered in conversation, not filled in by a heuristic.
+ */
+function unparsedReport(unparsed: UnparsedText[]): string {
+  if (unparsed.length === 0) return ''
+  const lines = unparsed.map(
+    (item) => `  - ${item.section}: "${item.text}" — ${item.reason}`,
+  )
+  return [
+    `\nNot migrated — ${unparsed.length} block(s) could not be read confidently:`,
+    ...lines,
+    'Nothing was guessed. Tell /profile what these should be and it will add them.',
+  ].join('\n')
 }
 
 async function main(): Promise<void> {
@@ -58,9 +82,15 @@ async function main(): Promise<void> {
   }
 
   const files = proposalFiles(proposal)
+  // A corrected proposal handed back by the skill may legitimately omit it.
+  const unparsed = proposal.unparsed ?? []
 
   if (!write) {
-    console.log(json ? JSON.stringify(proposal, null, 2) : preview(files))
+    console.log(
+      json
+        ? JSON.stringify(proposal, null, 2)
+        : preview(files, unparsed) + unparsedReport(unparsed),
+    )
     console.log(
       json ? '' : '\n(Preview only — nothing was written. Re-run with --write after approval.)',
     )
@@ -72,6 +102,8 @@ async function main(): Promise<void> {
   for (const skip of result.skipped) {
     console.log(`Skipped ${skip.relPath} — ${skip.reason} (left untouched).`)
   }
+  const report = unparsedReport(unparsed)
+  if (report) console.log(report)
   console.log(`user.md was not modified; regenerate the summary as its own step.`)
 }
 
